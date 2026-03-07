@@ -19,6 +19,7 @@ import {
     EmailAlreadySubscribedError,
 } from './subscriberStoreFile.js';
 import { readPapersCache, writePapersCache } from './papersCacheFile.js';
+import { analyzeWithOpenAI } from './analyzeService.js';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -619,6 +620,26 @@ app.get('/api/papers', async (req, res) => {
             return res.json(cached.papers.slice(0, limit));
         }
         return res.json([]);
+    }
+});
+
+app.post('/api/analyze', async (req, res) => {
+    const { papers } = req.body || {};
+    if (!Array.isArray(papers) || papers.length === 0) {
+        return res.status(400).json({ error: 'papers array required' });
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey?.trim()) {
+        return res.status(503).json({ error: '论文分析服务未配置（缺少 OPENAI_API_KEY）' });
+    }
+
+    try {
+        const result = await analyzeWithOpenAI(papers, apiKey);
+        return res.json(result);
+    } catch (error: any) {
+        console.error('[/api/analyze] Error:', error);
+        return res.status(500).json({ error: error.message || '论文分析失败' });
     }
 });
 

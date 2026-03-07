@@ -1,16 +1,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchLatestAIPapers } from './services/huggingFaceService';
-import { analyzePapers, hasApiKeyForProvider } from './services/analysisService';
 import { getCachedAnalyses, mergeCachedAnalyses } from './services/analysisCache';
 import { getCachedPapers, setCachedPapers } from './services/papersCache';
 import { DEFAULT_CACHE_TTL_MS } from './services/cacheStore';
-import { ArxivPaper, PaperAnalysis, MODEL_OPTIONS_FLAT, DEFAULT_MODEL_KEY, parseModelKey } from './types';
+import { ArxivPaper, PaperAnalysis } from './types';
 import PaperCard from './components/PaperCard';
 import SubscriptionForm from './components/SubscriptionForm';
 
-const MODEL_STORAGE_KEY = 'ai-insight-selected-model';
 const PAPER_CACHE_MAX_AGE_MS = DEFAULT_CACHE_TTL_MS;
+const ANALYSIS_CACHE_KEY = 'openai';
 
 /** Normalize API result to be keyed by paper.id for consistent cache/UI lookup. */
 function normalizeAnalysesByPaperId(
@@ -31,28 +30,10 @@ const App: React.FC = () => {
   const [loadingPapers, setLoadingPapers] = useState(true);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const validModelKeys = new Set(MODEL_OPTIONS_FLAT.map((o) => o.value));
-  const [selectedModelKey, setSelectedModelKey] = useState<string>(() => {
-    try {
-      let stored = localStorage.getItem(MODEL_STORAGE_KEY);
-      if (stored && !stored.includes('|')) stored = `gemini|${stored}`;
-      return stored && validModelKeys.has(stored) ? stored : DEFAULT_MODEL_KEY;
-    } catch {
-      return DEFAULT_MODEL_KEY;
-    }
-  });
 
   useEffect(() => {
-    try {
-      localStorage.setItem(MODEL_STORAGE_KEY, selectedModelKey);
-    } catch {
-      // ignore
-    }
-  }, [selectedModelKey]);
-
-  useEffect(() => {
-    setAnalyses(getCachedAnalyses(selectedModelKey));
-  }, [selectedModelKey]);
+    setAnalyses(getCachedAnalyses(ANALYSIS_CACHE_KEY));
+  }, []);
 
   const loadData = useCallback(async (forceRefresh: boolean = false) => {
     try {
@@ -79,41 +60,35 @@ const App: React.FC = () => {
 
       if (papersToUse.length === 0) return;
 
-      const cached = getCachedAnalyses(selectedModelKey);
+      const cached = getCachedAnalyses(ANALYSIS_CACHE_KEY);
       setAnalyses(cached);
 
       const missingPapers = papersToUse.filter((p) => !cached[p.id]);
       if (missingPapers.length === 0) return;
 
-      const parsed = parseModelKey(selectedModelKey);
-      if (!parsed) {
-        setError('Invalid model selection.');
-        return;
-      }
-      const { providerId, modelId } = parsed;
-      if (!hasApiKeyForProvider(providerId)) {
-        const keyMap: Record<string, string> = {
-          'zhipu': 'ZHIPU_API_KEY',
-          'gemini': 'GEMINI_API_KEY',
-          'deepseek': 'DEEPSEEK_API_KEY',
-        };
-        const keyName = keyMap[providerId] || 'API_KEY';
-        setError(`API Key 未配置：请在 .env 或 .env.local 中设置 ${keyName}，分析功能将不可用。`);
-        return;
+      setLoadingAnalysis(true);
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ papers: missingPapers }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json() as { error?: string };
+        throw new Error(errData.error || '论文分析失败');
       }
 
-      setLoadingAnalysis(true);
-      const results = await analyzePapers(missingPapers, providerId, modelId);
+      const results = await response.json() as Record<string, PaperAnalysis>;
       const normalized = normalizeAnalysesByPaperId(missingPapers, results);
       setAnalyses((prev) => ({ ...prev, ...normalized }));
-      mergeCachedAnalyses(selectedModelKey, normalized);
+      mergeCachedAnalyses(ANALYSIS_CACHE_KEY, normalized);
       setLoadingAnalysis(false);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
       setLoadingPapers(false);
       setLoadingAnalysis(false);
     }
-  }, [selectedModelKey]);
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -139,23 +114,7 @@ const App: React.FC = () => {
 
           <SubscriptionForm />
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <label className="flex items-center gap-2 text-sm text-slate-600">
-              <span className="font-medium">模型</span>
-              <select
-                value={selectedModelKey}
-                onChange={(e) => setSelectedModelKey(e.target.value)}
-                disabled={loadingPapers || loadingAnalysis}
-                className="px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-800 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed min-w-[220px]"
-                title="选择用于分析论文的 AI 模型（Gemini / DeepSeek）"
-              >
-                {MODEL_OPTIONS_FLAT.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => loadData(true)}
               disabled={loadingPapers || loadingAnalysis}
@@ -172,13 +131,6 @@ const App: React.FC = () => {
                 </svg>
               )}
               {loadingPapers ? '获取中...' : loadingAnalysis ? '分析中...' : '刷新'}
-            </button>
-            <button
-              onClick={() => {}}
-              disabled={loadingPapers || loadingAnalysis}
-              className="hidden px-4 py-2 bg-white text-slate-700 rounded-lg text-sm font-semibold border border-slate-300 hover:bg-slate-50 disabled:opacity-50"
-            >
-              清理缓存
             </button>
           </div>
         </div>
@@ -226,7 +178,7 @@ const App: React.FC = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M11.3 1.047a1 1 0 01.897.95l.141 2.655 2.503-.835a1 1 0 011.233.565l1.023 2.193a1 1 0 01-.3 1.258l-2.14 1.583 1.413 2.298a1 1 0 01-.15 1.3l-2.19 1.954 1.135 2.454a1 1 0 01-.58 1.282l-2.192.836-.142 2.654a1 1 0 01-1 1H8.718a1 1 0 01-.999-.949l-.142-2.654-2.192-.836a1 1 0 01-.58-1.282l1.135-2.454-2.19-1.954a1 1 0 01-.15-1.3l1.413-2.298-2.14-1.583a1 1 0 01-.3-1.258l1.023-2.193a1 1 0 011.233-.565l2.503.835.141-2.655a1 1 0 01.999-.95h2.583z" clipRule="evenodd" />
                   </svg>
-                  Gemini Enhanced
+                  GPT-4o Enhanced
                 </div>
               </div>
             </div>
@@ -261,7 +213,7 @@ const App: React.FC = () => {
       <footer className="bg-white border-t border-slate-200 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-slate-400 text-sm">
-            Powered by <span className="text-slate-600 font-semibold">Hugging Face</span> & <span className="text-blue-600 font-semibold">Google Gemini</span>
+            Powered by <span className="text-slate-600 font-semibold">Hugging Face</span> & <span className="text-blue-600 font-semibold">OpenAI GPT-4o</span>
           </p>
         </div>
       </footer>
