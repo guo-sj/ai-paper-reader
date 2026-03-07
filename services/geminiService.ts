@@ -1,0 +1,131 @@
+import { GoogleGenAI, Type } from "@google/genai";
+import { ArxivPaper, PaperAnalysis, DEFAULT_GEMINI_MODEL_ID } from '../types';
+
+/** Max papers per API call to avoid token/rate limits. */
+const BATCH_SIZE = 3;
+
+/** Delay in ms between batches to reduce rate-limit risk. */
+const BATCH_DELAY_MS = 500;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Resolves the model ID to use (passed value, then env, then default).
+ */
+function resolveModelId(modelId?: string): string {
+  if (modelId) return modelId;
+  const envModel =
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GEMINI_MODEL) ||
+    (typeof process !== 'undefined' && process.env?.VITE_GEMINI_MODEL);
+  return envModel || DEFAULT_GEMINI_MODEL_ID;
+}
+
+/**
+ * Analyzes a single batch of papers with Gemini.
+ */
+async function analyzeBatch(
+  ai: GoogleGenAI,
+  batch: ArxivPaper[],
+  modelId: string
+): Promise<Record<string, PaperAnalysis>> {
+  const prompt = `
+    请分析以下来自 arXiv 的最新 AI 研究论文。
+    请务必使用 **中文** 提供 JSON 格式的结构化分析。
+    
+    分析重点包括：
+    1. 核心方法论的简洁摘要（geminiSummary）。
+    2. 与之前工作相比的关键创新点（keyInnovation）。
+    3. 对 AI 领域的长期潜在影响（potentialImpact）。
+    4. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
+
+    待分析论文：
+    ${batch.map((p) => `
+      ---
+      ID: ${p.id}
+      标题: ${p.title}
+      摘要: ${p.summary}
+    `).join('\n')}
+  `;
+
+  const response = await ai.models.generateContent({
+    model: modelId,
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            paperId: { type: Type.STRING, description: "The full arXiv ID as provided." },
+            geminiSummary: { type: Type.STRING, description: "Concise summary." },
+            keyInnovation: { type: Type.STRING, description: "What's new here?" },
+            potentialImpact: { type: Type.STRING, description: "Why it matters." },
+            relevanceScore: { type: Type.NUMBER, description: "Score from 1 to 10." }
+          },
+          required: ["paperId", "geminiSummary", "keyInnovation", "potentialImpact", "relevanceScore"]
+        }
+      }
+    }
+  });
+
+  const resultText = response.text?.trim() || "[]";
+  const cleanJson = resultText.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+  const analysesArray: PaperAnalysis[] = JSON.parse(cleanJson);
+
+  const record: Record<string, PaperAnalysis> = {};
+  analysesArray.forEach((analysis) => {
+    if (analysis && analysis.paperId) {
+      record[analysis.paperId] = analysis;
+    }
+  });
+  return record;
+}
+
+/**
+ * Splits an array into chunks of at most `size` elements.
+ */
+function chunk<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/**
+ * Uses Gemini to analyze papers in batches to avoid token/rate limits.
+ * @param papers - Papers to analyze.
+ * @param modelId - Optional Gemini model ID (e.g. gemini-2.0-flash). Falls back to env VITE_GEMINI_MODEL or default.
+ */
+export const analyzePapers = async (
+  papers: ArxivPaper[],
+  modelId?: string
+): Promise<Record<string, PaperAnalysis>> => {
+  if (papers.length === 0) return {};
+
+  if (!process.env.API_KEY) {
+    console.error('Gemini API Key is missing. Please ensure process.env.API_KEY is set.');
+    return {};
+  }
+
+  const model = resolveModelId(modelId);
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const batches = chunk(papers, BATCH_SIZE);
+  const merged: Record<string, PaperAnalysis> = {};
+
+  for (let i = 0; i < batches.length; i++) {
+    try {
+      const batchResult = await analyzeBatch(ai, batches[i], model);
+      Object.assign(merged, batchResult);
+    } catch (error) {
+      console.error(`GeminiService batch ${i + 1}/${batches.length} failed:`, error);
+      // Continue with other batches; merged still contains previous successes
+    }
+    if (i < batches.length - 1) {
+      await delay(BATCH_DELAY_MS);
+    }
+  }
+
+  return merged;
+};

@@ -1,0 +1,5 @@
+{
+  "name": "AI Insight: Daily arXiv Curated",
+  "description": "An automated dashboard that fetches the latest AI research papers from arXiv and uses Gemini to provide summaries and deep-dive analysis.",
+  "requestFramePermissions": []
+}
