@@ -845,46 +845,11 @@ app.post('/api/unsubscribe', async (req, res) => {
 
 // --- Scheduled Tasks ---
 
-// Cron schedule config (env var overrides, see .env.example for timing constraints)
-const FETCH_CRON_SCHEDULE = process.env.FETCH_CRON_SCHEDULE || '0 6 * * *';
-const EMAIL_CRON_SCHEDULE = process.env.EMAIL_CRON_SCHEDULE || '0 8 * * *';
+// Cron schedule config (env var overrides)
+const FETCH_CRON_SCHEDULE = process.env.FETCH_CRON_SCHEDULE || '0 1 * * *';
 const FETCH_RETRY_INTERVAL_MS = Number(process.env.FETCH_RETRY_INTERVAL_MINUTES || 10) * 60 * 1000;
-const FETCH_RETRY_DEADLINE_HOUR = Number(process.env.FETCH_RETRY_DEADLINE_HOUR || 8);
+const FETCH_RETRY_DEADLINE_HOUR = Number(process.env.FETCH_RETRY_DEADLINE_HOUR || 4);
 
-// 6:00 AM: Fetch papers from HuggingFace, cache to disk, then analyze top 10 with OpenAI
-let fetchRetryInterval: ReturnType<typeof setInterval> | null = null;
-
-cron.schedule(FETCH_CRON_SCHEDULE, async () => {
-    console.log('[Cron fetch] Fetching papers from HuggingFace...');
-    try {
-        await fetchAndAnalyzePapers();
-        console.log('[Cron fetch] Papers fetched and analyzed successfully.');
-    } catch (error) {
-        console.error('[Cron fetch] Failed to fetch papers:', error);
-        console.log(`[Cron fetch] Will retry every ${FETCH_RETRY_INTERVAL_MS / 60000} minutes until ${FETCH_RETRY_DEADLINE_HOUR}:00...`);
-
-        // Retry every N minutes until deadline hour
-        fetchRetryInterval = setInterval(async () => {
-            const now = new Date();
-            if (now.getHours() >= FETCH_RETRY_DEADLINE_HOUR) {
-                console.log('[Cron fetch retry] Past deadline hour, stopping retries.');
-                clearInterval(fetchRetryInterval!);
-                fetchRetryInterval = null;
-                return;
-            }
-            try {
-                await fetchAndAnalyzePapers();
-                console.log('[Cron fetch retry] Papers fetched and analyzed successfully.');
-                clearInterval(fetchRetryInterval!);
-                fetchRetryInterval = null;
-            } catch (retryError) {
-                console.error('[Cron fetch retry] Still failing:', retryError);
-            }
-        }, FETCH_RETRY_INTERVAL_MS);
-    }
-});
-
-// 8:00 AM: Send daily digest email using analyzed papers cache
 // SMTP connection-level errors that indicate the server is unreachable
 const SMTP_CONNECTION_ERRORS = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'ESOCKET'];
 const MAX_CONSECUTIVE_CONN_FAILURES = 3;
@@ -916,24 +881,24 @@ async function runWithConcurrency<T, R>(
     return results;
 }
 
-cron.schedule(EMAIL_CRON_SCHEDULE, async () => {
-    console.log('[Cron email] Running daily email task...');
+async function sendDailyEmails(): Promise<void> {
+    console.log('[sendDailyEmails] Running daily email task...');
     const todayKey = getTodayKey();
 
     const analyzed = await readAnalyzedPapersCache();
     if (!analyzed || analyzed.papers.length === 0) {
-        console.error('[Cron email] analyze_papers_result.json 为空或不存在，邮件未发送。');
+        console.error('[sendDailyEmails] analyze_papers_result.json 为空或不存在，邮件未发送。');
         return;
     }
 
     if (analyzed.dateKey !== todayKey) {
-        console.error(`[Cron email] 分析结果非今日(${todayKey})（缓存日期: ${analyzed.dateKey}），邮件未发送。`);
+        console.error(`[sendDailyEmails] 分析结果非今日(${todayKey})（缓存日期: ${analyzed.dateKey}），邮件未发送。`);
         return;
     }
 
     const papersWithAnalysis = analyzed.papers.filter((p) => p.analysis);
     if (papersWithAnalysis.length === 0) {
-        console.error('[Cron email] 今日论文无 AI 分析结果，邮件未发送。');
+        console.error('[sendDailyEmails] 今日论文无 AI 分析结果，邮件未发送。');
         return;
     }
 
@@ -954,7 +919,7 @@ cron.schedule(EMAIL_CRON_SCHEDULE, async () => {
         if (!result.success && SMTP_CONNECTION_ERRORS.some(code => result.error?.includes(code))) {
             connFailCount++;
             if (connFailCount >= MAX_CONSECUTIVE_CONN_FAILURES) {
-                console.error(`[Cron email] SMTP unreachable (${connFailCount} connection failures). Aborting batch.`);
+                console.error(`[sendDailyEmails] SMTP unreachable (${connFailCount} connection failures). Aborting batch.`);
                 signal.aborted = true;
             }
         }
@@ -962,7 +927,6 @@ cron.schedule(EMAIL_CRON_SCHEDULE, async () => {
         return result;
     }, signal);
 
-    // Fill slots that were never started (aborted before pick-up) with skipped entries
     const results: SendEmailResult[] = rawResults.map((r, i) =>
         r ?? { success: false, email: emails[i], error: 'Skipped: SMTP unreachable' }
     );
@@ -971,9 +935,9 @@ cron.schedule(EMAIL_CRON_SCHEDULE, async () => {
     const failed = results.filter(r => !r.success);
     const durationMs = Date.now() - startTime;
 
-    console.log(`[Cron email] Done: ${succeeded.length} sent, ${failed.length} failed, ${durationMs}ms.`);
+    console.log(`[sendDailyEmails] Done: ${succeeded.length} sent, ${failed.length} failed, ${durationMs}ms.`);
     if (failed.length > 0) {
-        console.error('[Cron email] Failed:', failed.map(r => `${r.email}: ${r.error}`).join('; '));
+        console.error('[sendDailyEmails] Failed:', failed.map(r => `${r.email}: ${r.error}`).join('; '));
     }
 
     await appendEmailLog({
@@ -990,7 +954,41 @@ cron.schedule(EMAIL_CRON_SCHEDULE, async () => {
             error: r.error,
         })),
     });
-});
+}
+
+// 1:00 AM UTC (= 北京时间 09:00): 抓取论文、AI 分析，完成后立即发送邮件
+let fetchRetryInterval: ReturnType<typeof setInterval> | null = null;
+
+cron.schedule(FETCH_CRON_SCHEDULE, async () => {
+    console.log('[Cron] Fetching and analyzing papers...');
+    try {
+        await fetchAndAnalyzePapers();
+        console.log('[Cron] Papers fetched and analyzed successfully. Sending emails...');
+        await sendDailyEmails();
+    } catch (error) {
+        console.error('[Cron] Failed to fetch/analyze papers:', error);
+        console.log(`[Cron] Will retry every ${FETCH_RETRY_INTERVAL_MS / 60000} minutes until UTC ${FETCH_RETRY_DEADLINE_HOUR}:00...`);
+
+        fetchRetryInterval = setInterval(async () => {
+            const now = new Date();
+            if (now.getUTCHours() >= FETCH_RETRY_DEADLINE_HOUR) {
+                console.log('[Cron retry] Past deadline hour, stopping retries.');
+                clearInterval(fetchRetryInterval!);
+                fetchRetryInterval = null;
+                return;
+            }
+            try {
+                await fetchAndAnalyzePapers();
+                console.log('[Cron retry] Papers fetched and analyzed successfully. Sending emails...');
+                clearInterval(fetchRetryInterval!);
+                fetchRetryInterval = null;
+                await sendDailyEmails();
+            } catch (retryError) {
+                console.error('[Cron retry] Still failing:', retryError);
+            }
+        }, FETCH_RETRY_INTERVAL_MS);
+    }
+}, { timezone: 'UTC' });
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
