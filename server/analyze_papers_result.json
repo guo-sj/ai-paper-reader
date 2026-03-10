@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "dateKey": "2026-03-10",
+  "papers": [
+    {
+      "id": "2603.07660",
+      "title": "Holi-Spatial: Evolving Video Streams into Holistic 3D Spatial Intelligence",
+      "summary": "The pursuit of spatial intelligence fundamentally relies on access to large-scale, fine-grained 3D data. However, existing approaches predominantly construct spatial understanding benchmarks by generating question-answer (QA) pairs from a limited number of manually annotated datasets, rather than systematically annotating new large-scale 3D scenes from raw web data. As a result, their scalability is severely constrained, and model performance is further hindered by domain gaps inherent in these narrowly curated datasets.\n  In this work, we propose Holi-Spatial, the first fully automated, large-scale, spatially-aware multimodal dataset, constructed from raw video inputs without human intervention, using the proposed data curation pipeline. Holi-Spatial supports multi-level spatial supervision, ranging from geometrically accurate 3D Gaussian Splatting (3DGS) reconstructions with rendered depth maps to object-level and relational semantic annotations, together with corresponding spatial Question-Answer (QA) pairs.\n  Following a principled and systematic pipeline, we further construct Holi-Spatial-4M, the first large-scale, high-quality 3D semantic dataset, containing 12K optimized 3DGS scenes, 1.3M 2D masks, 320K 3D bounding boxes, 320K instance captions, 1.2M 3D grounding instances, and 1.2M spatial QA pairs spanning diverse geometric, relational, and semantic reasoning tasks.\n  Holi-Spatial demonstrates exceptional performance in data curation quality, significantly outperforming existing feed-forward and per-scene optimized methods on datasets such as ScanNet, ScanNet++, and DL3DV. Furthermore, fine-tuning Vision-Language Models (VLMs) on spatial reasoning tasks using this dataset has also led to substantial improvements in model performance.",
+      "authors": [
+        "Yuanyuan Gao",
+        "Hao Li",
+        "Yifei Liu",
+        "Xinhao Ji",
+        "Yuning Gong",
+        "Yuanjun Liao",
+        "Fangfu Liu",
+        "Manyuan Zhang",
+        "Yuchen Yang",
+        "Dan Xu",
+        "Xue Yang",
+        "Huaxi Huang",
+        "Hongjie Zhang",
+        "Ziwei Liu",
+        "Xiao Sun",
+        "Dingwen Zhang",
+        "Zhihang Zhong"
+      ],
+      "published": "2026-03-08T14:49:20.000Z",
+      "link": "https://huggingface.co/papers/2603.07660",
+      "category": "3D Gaussian Splatting",
+      "upvotes": 52
+    },
+    {
+      "id": "2603.03872",
+      "title": "Believe Your Model: Distribution-Guided Confidence Calibration",
+      "summary": "Large Reasoning Models have demonstrated remarkable performance with the advancement of test-time scaling techniques, which enhances prediction accuracy by generating multiple candidate responses and selecting the most reliable answer. While prior work has analyzed that internal model signals like confidence scores can partly indicate response correctness and exhibit a distributional correlation with accuracy, such distributional information has not been fully utilized to guide answer selection. Motivated by this, we propose DistriVoting, which incorporates distributional priors as another signal alongside confidence during voting. Specifically, our method (1) first decomposes the mixed confidence distribution into positive and negative components using Gaussian Mixture Models, (2) then applies a reject filter based on positive/negative samples from them to mitigate overlap between the two distributions. Besides, to further alleviate the overlap from the perspective of distribution itself, we propose SelfStepConf, which uses step-level confidence to dynamically adjust inference process, increasing the separation between the two distributions to improve the reliability of confidences in voting. Experiments across 16 models and 5 benchmarks demonstrate that our method significantly outperforms state-of-the-art approaches.",
+      "authors": [
+        "Xizhong Yang",
+        "Haotian Zhang",
+        "Huiming Wang",
+        "Mofei Song"
+      ],
+      "published": "2026-03-04T09:25:36.000Z",
+      "link": "https://huggingface.co/papers/2603.03872",
+      "category": "Gaussian Mixture Models",
+      "upvotes": 35
+    },
+    {
+      "id": "2603.08660",
+      "title": "How Far Can Unsupervised RLVR Scale LLM Training?",
+      "summary": "Unsupervised reinforcement learning with verifiable rewards (URLVR) offers a pathway to scale LLM training beyond the supervision bottleneck by deriving rewards without ground truth labels. Recent works leverage model intrinsic signals, showing promising early gains, yet their potential and limitations remain unclear. In this work, we revisit URLVR and provide a comprehensive analysis spanning taxonomy, theory and extensive experiments. We first classify URLVR methods into intrinsic versus external based on reward sources, then establish a unified theoretical framework revealing that all intrinsic methods converge toward sharpening the model's initial distribution This sharpening mechanism succeeds when initial confidence aligns with correctness but fails catastrophically when misaligned. Through systematic experiments, we show intrinsic rewards consistently follow a rise-then-fall pattern across methods, with collapse timing determined by model prior rather than engineering choices. Despite these scaling limits, we find intrinsic rewards remain valuable in test-time training on small datasets, and propose Model Collapse Step to measure model prior, serving as a practical indicator for RL trainability. Finally, we explore external reward methods that ground verification in computational asymmetries, showing preliminary evidence they may escape the confidence-correctness ceiling. Our findings chart boundaries for intrinsic URLVR while motivating paths toward scalable alternatives.",
+      "authors": [
+        "Bingxiang He",
+        "Yuxin Zuo",
+        "Zeyuan Liu",
+        "Shangziqi Zhao",
+        "Zixuan Fu",
+        "Junlin Yang",
+        "Cheng Qian",
+        "Kaiyan Zhang",
+        "Yuchen Fan",
+        "Ganqu Cui",
+        "Xiusi Chen",
+        "Youbang Sun",
+        "Xingtai Lv",
+        "Xuekai Zhu",
+        "Li Sheng",
+        "Ran Li",
+        "Huan-ang Gao",
+        "Yuchen Zhang",
+        "Bowen Zhou",
+        "Zhiyuan Liu",
+        "Ning Ding"
+      ],
+      "published": "2026-03-09T17:38:11.000Z",
+      "link": "https://huggingface.co/papers/2603.08660",
+      "category": "unsupervised reinforcement learning",
+      "upvotes": 30
+    },
+    {
+      "id": "2603.03269",
+      "title": "LoGeR: Long-Context Geometric Reconstruction with Hybrid Memory",
+      "summary": "Feedforward geometric foundation models achieve strong short-window reconstruction, yet scaling them to minutes-long videos is bottlenecked by quadratic attention complexity or limited effective memory in recurrent designs. We present LoGeR (Long-context Geometric Reconstruction), a novel architecture that scales dense 3D reconstruction to extremely long sequences without post-optimization. LoGeR processes video streams in chunks, leveraging strong bidirectional priors for high-fidelity intra-chunk reasoning. To manage the critical challenge of coherence across chunk boundaries, we propose a learning-based hybrid memory module. This dual-component system combines a parametric Test-Time Training (TTT) memory to anchor the global coordinate frame and prevent scale drift, alongside a non-parametric Sliding Window Attention (SWA) mechanism to preserve uncompressed context for high-precision adjacent alignment. Remarkably, this memory architecture enables LoGeR to be trained on sequences of 128 frames, and generalize up to thousands of frames during inference. Evaluated across standard benchmarks and a newly repurposed VBR dataset with sequences of up to 19k frames, LoGeR substantially outperforms prior state-of-the-art feedforward methods--reducing ATE on KITTI by over 74%--and achieves robust, globally consistent reconstruction over unprecedented horizons.",
+      "authors": [
+        "Junyi Zhang",
+        "Charles Herrmann",
+        "Junhwa Hur",
+        "Chen Sun",
+        "Ming-Hsuan Yang",
+        "Forrester Cole",
+        "Trevor Darrell",
+        "Deqing Sun"
+      ],
+      "published": "2026-03-03T18:55:37.000Z",
+      "link": "https://huggingface.co/papers/2603.03269",
+      "category": "feedforward geometric foundation models",
+      "upvotes": 30
+    },
+    {
+      "id": "2603.08589",
+      "title": "CARE-Edit: Condition-Aware Routing of Experts for Contextual Image Editing",
+      "summary": "Unified diffusion editors often rely on a fixed, shared backbone for diverse tasks, suffering from task interference and poor adaptation to heterogeneous demands (e.g., local vs global, semantic vs photometric). In particular, prevalent ControlNet and OmniControl variants combine multiple conditioning signals (e.g., text, mask, reference) via static concatenation or additive adapters which cannot dynamically prioritize or suppress conflicting modalities, thus resulting in artifacts like color bleeding across mask boundaries, identity or style drift, and unpredictable behavior under multi-condition inputs. To address this, we propose Condition-Aware Routing of Experts (CARE-Edit) that aligns model computation with specific editing competencies. At its core, a lightweight latent-attention router assigns encoded diffusion tokens to four specialized experts--Text, Mask, Reference, and Base--based on multi-modal conditions and diffusion timesteps: (i) a Mask Repaint module first refines coarse user-defined masks for precise spatial guidance; (ii) the router applies sparse top-K selection to dynamically allocate computation to the most relevant experts; (iii) a Latent Mixture module subsequently fuses expert outputs, coherently integrating semantic, spatial, and stylistic information to the base images. Experiments validate CARE-Edit's strong performance on contextual editing tasks, including erasure, replacement, text-driven edits, and style transfer. Empirical analysis further reveals task-specific behavior of specialized experts, showcasing the importance of dynamic, condition-aware processing to mitigate multi-condition conflicts.",
+      "authors": [
+        "Yucheng Wang",
+        "Zedong Wang",
+        "Yuetong Wu",
+        "Yue Ma",
+        "Dan Xu"
+      ],
+      "published": "2026-03-09T16:40:47.000Z",
+      "link": "https://huggingface.co/papers/2603.08589",
+      "category": "diffusion models",
+      "upvotes": 27
+    },
+    {
+      "id": "2603.08652",
+      "title": "CoCo: Code as CoT for Text-to-Image Preview and Rare Concept Generation",
+      "summary": "Recent advancements in Unified Multimodal Models (UMMs) have significantly advanced text-to-image (T2I) generation, particularly through the integration of Chain-of-Thought (CoT) reasoning. However, existing CoT-based T2I methods largely rely on abstract natural-language planning, which lacks the precision required for complex spatial layouts, structured visual elements, and dense textual content. In this work, we propose CoCo (Code-as-CoT), a code-driven reasoning framework that represents the reasoning process as executable code, enabling explicit and verifiable intermediate planning for image generation. Given a text prompt, CoCo first generates executable code that specifies the structural layout of the scene, which is then executed in a sandboxed environment to render a deterministic draft image. The model subsequently refines this draft through fine-grained image editing to produce the final high-fidelity result. To support this training paradigm, we construct CoCo-10K, a curated dataset containing structured draft-final image pairs designed to teach both structured draft construction and corrective visual refinement. Empirical evaluations on StructT2IBench, OneIG-Bench, and LongText-Bench show that CoCo achieves improvements of +68.83%, +54.8%, and +41.23% over direct generation, while also outperforming other generation methods empowered by CoT. These results demonstrate that executable code is an effective and reliable reasoning paradigm for precise, controllable, and structured text-to-image generation. The code is available at: https://github.com/micky-li-hd/CoCo",
+      "authors": [
+        "Haodong Li",
+        "Chunmei Qing",
+        "Huanyu Zhang",
+        "Dongzhi Jiang",
+        "Yihang Zou",
+        "Hongbo Peng",
+        "Dingming Li",
+        "Yuhong Dai",
+        "ZePeng Lin",
+        "Juanxi Tian",
+        "Yi Zhou",
+        "Siqi Dai",
+        "Jingwei Wu"
+      ],
+      "published": "2026-03-09T17:31:16.000Z",
+      "link": "https://huggingface.co/papers/2603.08652",
+      "category": "Unified Multimodal Models",
+      "upvotes": 23
+    },
+    {
+      "id": "2603.08703",
+      "title": "HiAR: Efficient Autoregressive Long Video Generation via Hierarchical Denoising",
+      "summary": "Autoregressive (AR) diffusion offers a promising framework for generating videos of theoretically infinite length. However, a major challenge is maintaining temporal continuity while preventing the progressive quality degradation caused by error accumulation. To ensure continuity, existing methods typically condition on highly denoised contexts; yet, this practice propagates prediction errors with high certainty, thereby exacerbating degradation. In this paper, we argue that a highly clean context is unnecessary. Drawing inspiration from bidirectional diffusion models, which denoise frames at a shared noise level while maintaining coherence, we propose that conditioning on context at the same noise level as the current block provides sufficient signal for temporal consistency while effectively mitigating error propagation. Building on this insight, we propose HiAR, a hierarchical denoising framework that reverses the conventional generation order: instead of completing each block sequentially, it performs causal generation across all blocks at every denoising step, so that each block is always conditioned on context at the same noise level. This hierarchy naturally admits pipelined parallel inference, yielding a 1.8 wall-clock speedup in our 4-step setting. We further observe that self-rollout distillation under this paradigm amplifies a low-motion shortcut inherent to the mode-seeking reverse-KL objective. To counteract this, we introduce a forward-KL regulariser in bidirectional-attention mode, which preserves motion diversity for causal inference without interfering with the distillation loss. On VBench (20s generation), HiAR achieves the best overall score and the lowest temporal drift among all compared methods.",
+      "authors": [
+        "Kai Zou",
+        "Dian Zheng",
+        "Hongbo Liu",
+        "Tiankai Hang",
+        "Bin Liu",
+        "Nenghai Yu"
+      ],
+      "published": "2026-03-09T17:58:16.000Z",
+      "link": "https://huggingface.co/papers/2603.08703",
+      "category": "autoregressive diffusion",
+      "upvotes": 21
+    },
+    {
+      "id": "2603.07980",
+      "title": "\\$OneMillion-Bench: How Far are Language Agents from Human Experts?",
+      "summary": "As language models (LMs) evolve from chat assistants to long-horizon agents capable of multi-step reasoning and tool use, existing benchmarks remain largely confined to structured or exam-style tasks that fall short of real-world professional demands. To this end, we introduce \\OneMillion-Bench OneMillion-Bench, a benchmark of 400 expert-curated tasks spanning Law, Finance, Industry, Healthcare, and Natural Science, built to evaluate agents across economically consequential scenarios. Unlike prior work, the benchmark requires retrieving authoritative sources, resolving conflicting evidence, applying domain-specific rules, and making constraint decisions, where correctness depends as much on the reasoning process as the final answer. We adopt a rubric-based evaluation protocol scoring factual accuracy, logical coherence, practical feasibility, and professional compliance, focused on expert-level problems to ensure meaningful differentiation across agents. Together, \\$OneMillion-Bench provides a unified testbed for assessing agentic reliability, professional depth, and practical readiness in domain-intensive scenarios.",
+      "authors": [
+        "Qianyu Yang",
+        "Yang Liu",
+        "Jiaqi Li",
+        "Jun Bai",
+        "Hao Chen",
+        "Kaiyuan Chen",
+        "Tiliang Duan",
+        "Jiayun Dong",
+        "Xiaobo Hu",
+        "Zixia Jia",
+        "Yang Liu",
+        "Tao Peng",
+        "Yixin Ren",
+        "Ran Tian",
+        "Zaiyuan Wang",
+        "Yanglihong Xiao",
+        "Gang Yao",
+        "Lingyue Yin",
+        "Ge Zhang",
+        "Chun Zhang",
+        "Jianpeng Jiao",
+        "Zilong Zheng",
+        "Yuan Gong"
+      ],
+      "published": "2026-03-09T05:32:42.000Z",
+      "link": "https://huggingface.co/papers/2603.07980",
+      "category": "",
+      "upvotes": 17
+    },
+    {
+      "id": "2603.05890",
+      "title": "Lost in Stories: Consistency Bugs in Long Story Generation by LLMs",
+      "summary": "What happens when a storyteller forgets its own story? Large Language Models (LLMs) can now generate narratives spanning tens of thousands of words, but they often fail to maintain consistency throughout. When generating long-form narratives, these models can contradict their own established facts, character traits, and world rules. Existing story generation benchmarks focus mainly on plot quality and fluency, leaving consistency errors largely unexplored. To address this gap, we present ConStory-Bench, a benchmark designed to evaluate narrative consistency in long-form story generation. It contains 2,000 prompts across four task scenarios and defines a taxonomy of five error categories with 19 fine-grained subtypes. We also develop ConStory-Checker, an automated pipeline that detects contradictions and grounds each judgment in explicit textual evidence. Evaluating a range of LLMs through five research questions, we find that consistency errors show clear tendencies: they are most common in factual and temporal dimensions, tend to appear around the middle of narratives, occur in text segments with higher token-level entropy, and certain error types tend to co-occur. These findings can inform future efforts to improve consistency in long-form narrative generation. Our project page is available at https://picrew.github.io/constory-bench.github.io/.",
+      "authors": [
+        "Junjie Li",
+        "Xinrui Guo",
+        "Yuhao Wu",
+        "Roy Ka-Wei Lee",
+        "Hongzhi Li",
+        "Yutao Xie"
+      ],
+      "published": "2026-03-06T04:16:46.000Z",
+      "link": "https://huggingface.co/papers/2603.05890",
+      "category": "large language models",
+      "upvotes": 16
+    },
+    {
+      "id": "2603.06713",
+      "title": "Scaling Agentic Capabilities, Not Context: Efficient Reinforcement Finetuning for Large Toolspaces",
+      "summary": "Agentic systems operating over large tool ecosystems must plan and execute long-horizon workflows under weak or non-verifiable supervision. While frontier models mitigate these challenges through scale and large context budgets, small language models (SLMs) remain brittle: eager tool loading saturates context, execution errors compound over time, and sparse rewards limit learning. We introduce ATLAS, a reinforcement finetuning framework that enables SLMs to operate effectively in large-scale toolspace environments by learning how to acquire context and how to execute actions. Our approach makes two key contributions. First, we treat context control and execution structure as learnable decisions, combining iterative tool loading with programmatic tool orchestration to bound context growth and stabilize long-horizon trajectories. Second, we propose rubric-based reinforcement finetuning, which decomposes task success into structured, task-aligned criteria and enables scalable training using small judge models. Across MCP benchmarks, these design choices yield large and consistent gains over generic RL baselines, allowing a 4B SLM to approach frontier-agent performance under far tighter parameter and context budgets.",
+      "authors": [
+        "Karan Gupta",
+        "Pranav Vajreshwari",
+        "Yash Pandya",
+        "Raghav Magazine",
+        "Akshay Nambi",
+        "Ahmed Awadallah"
+      ],
+      "published": "2026-03-05T20:29:12.000Z",
+      "link": "https://huggingface.co/papers/2603.06713",
+      "category": "reinforcement fine-tuning",
+      "upvotes": 9
+    }
+  ]
+}
