@@ -49,10 +49,24 @@ const App: React.FC = () => {
       }
 
       if (papersToUse.length === 0) {
-        const fetchedPapers = await fetchLatestAIPapers(10, forceRefresh);
-        papersToUse = fetchedPapers;
-        setCachedPapers(fetchedPapers);
-        console.log('Fetched papers:', fetchedPapers.map(p => ({ title: p.title, upvotes: p.upvotes })));
+        const fetchedRaw = await fetchLatestAIPapers(10, forceRefresh);
+
+        // Extract analyses embedded by the backend (from analyze_papers_result.json)
+        const embeddedAnalyses: Record<string, PaperAnalysis> = {};
+        const cleanPapers: ArxivPaper[] = (fetchedRaw as Array<ArxivPaper & { analysis?: PaperAnalysis }>).map((p) => {
+          if (p.analysis && typeof p.analysis === 'object') {
+            embeddedAnalyses[p.id] = p.analysis;
+          }
+          const { analysis: _analysis, ...rest } = p;
+          return rest as ArxivPaper;
+        });
+
+        papersToUse = cleanPapers;
+        setCachedPapers(cleanPapers);
+        if (Object.keys(embeddedAnalyses).length > 0) {
+          mergeCachedAnalyses(ANALYSIS_CACHE_KEY, embeddedAnalyses);
+        }
+        console.log('Fetched papers:', cleanPapers.map(p => ({ title: p.title, upvotes: p.upvotes })));
       }
 
       setPapers(papersToUse);

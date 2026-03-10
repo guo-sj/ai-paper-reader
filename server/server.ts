@@ -18,8 +18,9 @@ import {
     removeSubscriberById,
     EmailAlreadySubscribedError,
 } from './subscriberStoreFile.js';
-import { readPapersCache, writePapersCache } from './papersCacheFile.js';
+import { writePapersCache } from './papersCacheFile.js';
 import { analyzeWithOpenAI } from './analyzeService.js';
+import { readAnalyzedPapersCache, writeAnalyzedPapersCache, AnalyzedPaper } from './analyzedPapersCacheFile.js';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -286,26 +287,26 @@ async function appendEmailLog(log: EmailSendLog): Promise<void> {
 
 const getTodayKey = (): string => {
     const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
+    const yyyy = now.getUTCFullYear();
+    const mm = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(now.getUTCDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
 };
 
 const toLocalDateKey = (isoString: string): string => {
     const d = new Date(isoString);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(d.getUTCDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
 };
 
 const getYesterdayKey = (): string => {
     const d = new Date();
-    d.setDate(d.getDate() - 1);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
+    d.setUTCDate(d.getUTCDate() - 1);
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(d.getUTCDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
 };
 
@@ -316,7 +317,7 @@ const fetchFromHuggingFace = async () => {
     const todayKey = getTodayKey();
     const url = process.env.HF_API_BASE
         ? `${process.env.HF_API_BASE}/api/daily_papers`
-        : 'https://hf-mirror.com/api/daily_papers';
+        : 'https://huggingface.co/api/daily_papers';
     const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
     const fetchOptions: any = {
         timeout: 30000,
@@ -343,6 +344,16 @@ const fetchFromHuggingFace = async () => {
             item.paper?.submittedOnDailyAt && toLocalDateKey(item.paper.submittedOnDailyAt) === yesterdayKey
         );
     }
+    // If today and yesterday both empty (e.g. weekend), fall back to the most recent date in the response
+    if (filteredData.length === 0 && data.length > 0) {
+        const sorted = [...data].filter((item: any) => item.paper?.submittedOnDailyAt)
+            .sort((a: any, b: any) => new Date(b.paper.submittedOnDailyAt).getTime() - new Date(a.paper.submittedOnDailyAt).getTime());
+        if (sorted.length > 0) {
+            const mostRecentDateKey = toLocalDateKey(sorted[0].paper.submittedOnDailyAt);
+            filteredData = sorted.filter((item: any) => toLocalDateKey(item.paper.submittedOnDailyAt) === mostRecentDateKey);
+            console.log(`[fetchFromHuggingFace] Falling back to most recent available date: ${mostRecentDateKey}`);
+        }
+    }
     console.log(`Filtered papers count: ${filteredData.length} (date: ${todayKey})`);
 
     const papers = filteredData.map((item: any) => {
@@ -368,32 +379,91 @@ const fetchFromHuggingFace = async () => {
 /** Fetch from HF and persist to disk cache. Returns the papers. */
 const fetchAndCachePapers = async () => {
     const { dateKey, papers } = await fetchFromHuggingFace();
-    await writePapersCache(dateKey, papers);
+    if (papers.length > 0) {
+        await writePapersCache(dateKey, papers);
+    } else {
+        console.warn('[fetchAndCachePapers] HF returned 0 papers, skipping cache write to preserve existing cache.');
+    }
     return papers;
 };
 
-const buildDailyEmailHtml = (papers: Array<{
-    title: string;
-    summary: string;
-    link: string;
-}>, subscriberEmail: string) => {
+/**
+ * Fetch papers, persist to papers-cache.json, then analyze top 10 with OpenAI
+ * and persist results to analyze_papers_result.json.
+ * If analysis fails (no API key or API error), the analyzed cache is NOT written
+ * so the 8AM email cron will skip sending.
+ */
+const fetchAndAnalyzePapers = async (): Promise<void> => {
+    const papers = await fetchAndCachePapers();
+    if (papers.length === 0) {
+        console.warn('[fetchAndAnalyzePapers] No papers fetched from HF, skipping analysis.');
+        return;
+    }
+    const top10 = papers.slice(0, 10);
+    const todayKey = getTodayKey();
+
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    if (!apiKey) {
+        throw new Error('论文分析服务未配置（缺少 OPENAI_API_KEY）');
+    }
+
+    console.log(`[fetchAndAnalyzePapers] Analyzing top ${top10.length} papers with OpenAI...`);
+    const analyses = await analyzeWithOpenAI(top10, apiKey);
+    const analyzedPapers: AnalyzedPaper[] = top10.map((p) => ({
+        ...p,
+        analysis: analyses[p.id],
+    }));
+    await writeAnalyzedPapersCache(todayKey, analyzedPapers);
+    console.log('[fetchAndAnalyzePapers] Analysis complete and saved to analyze_papers_result.json.');
+};
+
+const buildDailyEmailHtml = (papers: AnalyzedPaper[], subscriberEmail: string) => {
     const unsubToken = generateUnsubscribeToken(subscriberEmail);
     const unsubUrl = `${BASE_URL}/api/unsubscribe?email=${encodeURIComponent(subscriberEmail)}&token=${unsubToken}`;
 
-    const paperHtml = papers.map((p) => `
-        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
-            <h3 style="margin: 0 0 10px 0;"><a href="${sanitizeUrl(p.link)}">${escapeHtml(p.title)}</a></h3>
-            <p style="color: #666; font-size: 14px; line-height: 1.5;">${escapeHtml(p.summary)}</p>
-        </div>
-    `).join('');
+    const paperHtml = papers.map((p) => {
+        const analysisHtml = p.analysis ? `
+            <div style="background:#f0f7ff;border:1px solid #d0e8ff;border-radius:8px;padding:12px;margin:12px 0;">
+                <p style="margin:0 0 6px 0;font-size:11px;font-weight:bold;color:#1d4ed8;text-transform:uppercase;letter-spacing:0.05em;">AI 摘要</p>
+                <p style="margin:0;font-size:13px;color:#374151;line-height:1.6;font-style:italic;">${escapeHtml(p.analysis.geminiSummary)}</p>
+            </div>
+            <div style="display:flex;gap:16px;margin:8px 0;">
+                <div style="flex:1;">
+                    <p style="margin:0 0 4px 0;font-size:11px;font-weight:bold;color:#6b7280;text-transform:uppercase;">核心创新</p>
+                    <p style="margin:0;font-size:12px;color:#374151;line-height:1.5;">${escapeHtml(p.analysis.keyInnovation)}</p>
+                </div>
+                <div style="flex:1;">
+                    <p style="margin:0 0 4px 0;font-size:11px;font-weight:bold;color:#6b7280;text-transform:uppercase;">潜在影响</p>
+                    <p style="margin:0;font-size:12px;color:#374151;line-height:1.5;">${escapeHtml(p.analysis.potentialImpact)}</p>
+                </div>
+            </div>
+            <p style="margin:8px 0 0 0;font-size:11px;color:#6b7280;">相关度评分: <strong style="color:${p.analysis.relevanceScore >= 8 ? '#16a34a' : '#374151'}">${p.analysis.relevanceScore}/10</strong></p>
+        ` : '';
+
+        return `
+            <div style="margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid #e5e7eb;">
+                <h3 style="margin:0 0 6px 0;font-size:16px;line-height:1.4;">
+                    <a href="${sanitizeUrl(p.link)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(p.title)}</a>
+                </h3>
+                <p style="margin:0 0 8px 0;font-size:12px;color:#9ca3af;">
+                    ${p.authors.slice(0, 3).map(escapeHtml).join(', ')}${p.authors.length > 3 ? ' et al.' : ''}
+                </p>
+                ${analysisHtml}
+                <p style="margin:8px 0 0 0;font-size:13px;color:#6b7280;line-height:1.5;">
+                    ${escapeHtml(p.summary.slice(0, 300))}${p.summary.length > 300 ? '...' : ''}
+                </p>
+            </div>
+        `;
+    }).join('');
 
     return `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #2563eb;">Daily AI Papers</h1>
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111827;">
+            <h1 style="color:#2563eb;margin-bottom:4px;">Daily AI Papers</h1>
+            <p style="color:#6b7280;font-size:13px;margin-top:0;">今日精选 ${papers.length} 篇 AI 论文（含 AI 中文分析）</p>
             ${paperHtml}
-            <p style="font-size: 12px; color: #999; margin-top: 30px;">
+            <p style="font-size:12px;color:#9ca3af;margin-top:30px;border-top:1px solid #e5e7eb;padding-top:16px;">
                 You are receiving this because you subscribed to AI Insight.
-                <br><a href="${escapeHtml(unsubUrl)}">Unsubscribe</a>
+                <br><a href="${escapeHtml(unsubUrl)}" style="color:#6b7280;">Unsubscribe</a>
             </p>
         </div>
     `;
@@ -566,17 +636,11 @@ app.post('/api/admin/send-test-email', requireAdminAuth, async (req, res) => {
     }
 
     try {
-        // Try disk cache first, fall back to HF fetch
-        let papers: any[];
-        const cached = await readPapersCache();
-        if (cached && cached.papers.length > 0) {
-            papers = cached.papers;
-        } else {
-            papers = await fetchAndCachePapers();
+        const analyzed = await readAnalyzedPapersCache();
+        if (!analyzed || analyzed.papers.length === 0) {
+            return res.status(503).json({ error: 'analyze_papers_result.json 不存在或为空，请先触发论文获取与分析' });
         }
-        if (papers.length === 0) {
-            return res.status(500).json({ error: 'No papers available today' });
-        }
+        const papers = analyzed.papers;
         const html = buildDailyEmailHtml(papers, email);
         const result = await sendEmail(email, getDailyEmailSubject(), html);
         if (!result.success) {
@@ -592,34 +656,25 @@ app.post('/api/admin/send-test-email', requireAdminAuth, async (req, res) => {
 app.get('/api/papers', async (req, res) => {
     const limit = req.query.limit ? Number(req.query.limit) : 12;
     const refresh = req.query.refresh === 'true';
+    const todayKey = getTodayKey();
 
     try {
-        if (refresh) {
-            console.log('[/api/papers] refresh=true, fetching from HuggingFace...');
-            const papers = await fetchAndCachePapers();
-            return res.json(papers.slice(0, limit));
+        const analyzed = await readAnalyzedPapersCache();
+        const needsRefresh = refresh || !analyzed || analyzed.papers.length === 0 || analyzed.dateKey !== todayKey;
+
+        if (needsRefresh) {
+            console.log('[/api/papers] Fetching and analyzing papers...');
+            await fetchAndAnalyzePapers();
         }
 
-        // Try disk cache first
-        const cached = await readPapersCache();
-        if (cached && cached.papers.length > 0) {
-            console.log(`[/api/papers] Serving ${cached.papers.length} papers from disk cache (date: ${cached.dateKey})`);
-            return res.json(cached.papers.slice(0, limit));
+        const result = await readAnalyzedPapersCache();
+        if (!result || result.papers.length === 0) {
+            return res.status(503).json({ error: '暂无论文数据，请稍后重试' });
         }
-
-        // No cache, fetch from HF
-        console.log('[/api/papers] No disk cache, fetching from HuggingFace...');
-        const papers = await fetchAndCachePapers();
-        return res.json(papers.slice(0, limit));
-    } catch (error) {
+        return res.json(result.papers.slice(0, limit));
+    } catch (error: any) {
         console.error('Error in /api/papers:', error);
-        // If fetch fails but we have stale cache, return it
-        const cached = await readPapersCache();
-        if (cached && cached.papers.length > 0) {
-            console.log('[/api/papers] HF fetch failed, returning stale disk cache');
-            return res.json(cached.papers.slice(0, limit));
-        }
-        return res.json([]);
+        return res.status(503).json({ error: error.message || '论文获取或分析失败' });
     }
 });
 
@@ -796,14 +851,14 @@ const EMAIL_CRON_SCHEDULE = process.env.EMAIL_CRON_SCHEDULE || '0 8 * * *';
 const FETCH_RETRY_INTERVAL_MS = Number(process.env.FETCH_RETRY_INTERVAL_MINUTES || 10) * 60 * 1000;
 const FETCH_RETRY_DEADLINE_HOUR = Number(process.env.FETCH_RETRY_DEADLINE_HOUR || 8);
 
-// 6:00 AM: Fetch papers from HuggingFace and cache to disk
+// 6:00 AM: Fetch papers from HuggingFace, cache to disk, then analyze top 10 with OpenAI
 let fetchRetryInterval: ReturnType<typeof setInterval> | null = null;
 
 cron.schedule(FETCH_CRON_SCHEDULE, async () => {
     console.log('[Cron fetch] Fetching papers from HuggingFace...');
     try {
-        await fetchAndCachePapers();
-        console.log('[Cron fetch] Papers fetched and cached successfully.');
+        await fetchAndAnalyzePapers();
+        console.log('[Cron fetch] Papers fetched and analyzed successfully.');
     } catch (error) {
         console.error('[Cron fetch] Failed to fetch papers:', error);
         console.log(`[Cron fetch] Will retry every ${FETCH_RETRY_INTERVAL_MS / 60000} minutes until ${FETCH_RETRY_DEADLINE_HOUR}:00...`);
@@ -818,8 +873,8 @@ cron.schedule(FETCH_CRON_SCHEDULE, async () => {
                 return;
             }
             try {
-                await fetchAndCachePapers();
-                console.log('[Cron fetch retry] Papers fetched and cached successfully.');
+                await fetchAndAnalyzePapers();
+                console.log('[Cron fetch retry] Papers fetched and analyzed successfully.');
                 clearInterval(fetchRetryInterval!);
                 fetchRetryInterval = null;
             } catch (retryError) {
@@ -829,7 +884,7 @@ cron.schedule(FETCH_CRON_SCHEDULE, async () => {
     }
 });
 
-// 8:00 AM: Send daily digest email using disk cache
+// 8:00 AM: Send daily digest email using analyzed papers cache
 // SMTP connection-level errors that indicate the server is unreachable
 const SMTP_CONNECTION_ERRORS = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'ESOCKET'];
 const MAX_CONSECUTIVE_CONN_FAILURES = 3;
@@ -865,14 +920,20 @@ cron.schedule(EMAIL_CRON_SCHEDULE, async () => {
     console.log('[Cron email] Running daily email task...');
     const todayKey = getTodayKey();
 
-    const cached = await readPapersCache();
-    if (!cached || cached.papers.length === 0) {
-        console.error('[Cron email] 磁盘缓存为空，没有论文可发送，邮件未发送。');
+    const analyzed = await readAnalyzedPapersCache();
+    if (!analyzed || analyzed.papers.length === 0) {
+        console.error('[Cron email] analyze_papers_result.json 为空或不存在，邮件未发送。');
         return;
     }
 
-    if (cached.dateKey !== todayKey) {
-        console.error(`[Cron email] 未获取到今天(${todayKey})的论文（缓存日期: ${cached.dateKey}），邮件未发送。`);
+    if (analyzed.dateKey !== todayKey) {
+        console.error(`[Cron email] 分析结果非今日(${todayKey})（缓存日期: ${analyzed.dateKey}），邮件未发送。`);
+        return;
+    }
+
+    const papersWithAnalysis = analyzed.papers.filter((p) => p.analysis);
+    if (papersWithAnalysis.length === 0) {
+        console.error('[Cron email] 今日论文无 AI 分析结果，邮件未发送。');
         return;
     }
 
@@ -882,7 +943,7 @@ cron.schedule(EMAIL_CRON_SCHEDULE, async () => {
     let connFailCount = 0;
 
     const rawResults = await runWithConcurrency(emails, EMAIL_CONCURRENCY, async (email) => {
-        const personalizedHtml = buildDailyEmailHtml(cached.papers, email);
+        const personalizedHtml = buildDailyEmailHtml(analyzed.papers, email);
         const unsubToken = generateUnsubscribeToken(email);
         const unsubUrl = `${BASE_URL}/api/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubToken}`;
         const result = await sendEmail(email, getDailyEmailSubject(), personalizedHtml, {

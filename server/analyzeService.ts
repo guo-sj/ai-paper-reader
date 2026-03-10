@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 
 const OPENAI_BASE = process.env.OPENAI_BASE_URL || 'https://api.gptplus5.com';
 const MODEL = 'gpt-4o';
-const BATCH_SIZE = 3;
+const BATCH_SIZE = 10;
 const BATCH_DELAY_MS = 500;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
