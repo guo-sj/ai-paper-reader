@@ -1,28 +1,25 @@
 ## 项目简介
 
 本项目是一个面向 AI 研究爱好者的「每日论文阅读助手」。
-它会从公开数据源获取最新的 AI 相关论文，结合大模型自动生成摘要和要点，帮助你快速浏览当天值得关注的工作，并支持邮件订阅和后台管理订阅者。
+它会从 HuggingFace 获取最新的 AI 相关论文，由后端调用 OpenAI GPT-4o 自动生成中文摘要和要点，帮助你快速浏览当天值得关注的工作，并支持邮件订阅和后台管理订阅者。
 
 ### 当前功能概览
 
 - **论文来源**
-  - 默认从 HuggingFace 国内镜像站 `https://hf-mirror.com/api/daily_papers` 获取每日论文（国内直连，无需代理）。
-  - 可通过 `HF_API_BASE` 环境变量切换为其他源（如原站 `https://huggingface.co`）。
-  - 接口本身已经对论文做过初步筛选，聚焦 AI / 机器学习相关内容。
-- **论文磁盘缓存**
-  - 后端拉取的论文会持久化到 `server/papers-cache.json`，服务器重启后数据不丢失。
-  - 前端请求 `/api/papers` 时优先读取磁盘缓存，点击「刷新」按钮时强制从 HF API 拉取并更新缓存。
+  - 从 HuggingFace `https://huggingface.co/api/daily_papers` 获取每日论文。
+  - 可通过 `HF_API_BASE` 环境变量切换为其他源（如国内镜像 `https://hf-mirror.com`）。
+  - 可通过 `HTTPS_PROXY` / `HTTP_PROXY` 配置代理访问。
+- **论文缓存与 AI 分析**
+  - 拉取的论文持久化到 `server/papers-cache.json`。
+  - 后端自动调用 OpenAI GPT-4o 对 Top 10 论文进行分析，生成中文摘要、关键创新点、潜在影响、相关性评分，结果持久化到 `server/analyze_papers_result.json`。
+  - 前端请求 `/api/papers` 时始终从 `analyze_papers_result.json` 读取（带 AI 分析）；若缓存不存在或非今日数据，则自动触发抓取+分析流程。
 - **论文筛选与展示**
   - 后端获取当天的论文列表，按 upvotes 降序排列，前端展示为卡片列表。
-  - 用户可以选择不同的大模型（Gemini / DeepSeek）对论文进行自动分析，生成：
-    - 精炼摘要
-    - 关键创新点
-    - 潜在影响
-    - 相关性评分
-- **定时任务（拉取与邮件分离）**
-  - **每天 6:00 AM**：自动从 HF API 拉取论文并写入磁盘缓存。失败后按配置间隔重试，直到截止时间停止。
-  - **每天 8:00 AM**：读取磁盘缓存，校验日期为今天后并发发送邮件（默认 5 并发），每封邮件独立处理，记录发送日志。
-  - 拉取和发邮件解耦，HF API 短暂不可用不会导致邮件完全发不出去。
+  - 每张卡片展示论文标题、作者、AI 中文摘要、关键创新点、潜在影响、相关性评分。
+- **定时任务（UTC 1:00 AM）**
+  - 每天 UTC 1:00 AM（北京时间 09:00）：自动从 HF API 拉取论文 → 写入 `papers-cache.json` → GPT-4o 分析 → 写入 `analyze_papers_result.json` → 立即发送邮件。
+  - 全流程串联，分析完成后立即发送，无需配置两个独立的 cron。
+  - 失败后按配置间隔重试，直到 UTC `FETCH_RETRY_DEADLINE_HOUR` 点停止。
 - **订阅功能（Double Opt-in）**
   - 用户在页面顶部填写邮箱后，系统发送确认邮件，用户点击邮件中的链接后才真正加入订阅。
   - 同一邮箱 5 分钟内只能发起一次确认请求（防滥用）。
@@ -31,7 +28,7 @@
 - **后台管理**
   - 提供一个 `/admin` 后台页面，只有管理员登录后才能访问。
   - 管理员可以查看所有订阅者、手动添加订阅者（直接生效，无需 double opt-in）、删除订阅者。
-  - 新增邮件发送日志接口（`GET /api/admin/email-logs`），可查看最近 20 次批量发送记录。
+  - 支持发送测试邮件和查看最近 20 次批量发送日志。
 
 ---
 
@@ -44,9 +41,9 @@
 - **UI 特点**：
   - 响应式布局，适配桌面和移动端。
   - 论文卡片展示当天精选论文及 AI 分析结果。
-  - 顶部提供模型选择、刷新按钮和订阅表单。
+  - 顶部提供刷新按钮和订阅表单。
 - **主要模块**：
-  - `App.tsx`：主应用入口，负责加载论文、触发分析、展示结果。
+  - `App.tsx`：主应用入口，负责加载论文、展示结果。
   - `components/SubscriptionForm.tsx`：订阅邮箱表单。
   - `components/PaperCard.tsx`：论文卡片组件（展示论文信息与分析）。
   - `AdminApp.tsx`：管理员登录与订阅者管理 UI（在 `/admin` 路径下使用）。
@@ -58,12 +55,13 @@
 - **数据存储**：JSON 文件
   - `server/subscribers.json` — 订阅者数据
   - `server/papers-cache.json` — 论文磁盘缓存（自动生成）
+  - `server/analyze_papers_result.json` — AI 分析结果缓存（自动生成）
   - `server/email-send-log.jsonl` — 邮件发送日志（自动生成，JSONL 格式，超 1000 行自动截断）
 - **其他依赖**：
   - `nodemailer`：发送邮件（欢迎邮件与每日摘要）。
-  - `node-cron`：定时任务（6:00 拉取论文、8:00 发送日报）。
+  - `node-cron`：定时任务（UTC 1:00 AM 抓取+分析+发邮件）。
   - `dotenv`：加载环境变量（先加载 `.env`，再加载 `.env.local` 覆盖）。
-  - `node-fetch`：后端请求 HF 论文接口。
+  - `node-fetch`：后端请求 HF 论文接口与 OpenAI API。
   - `https-proxy-agent` / `socks-proxy-agent`：支持 HTTP/SOCKS 代理访问外部 API。
 
 ---
@@ -78,22 +76,23 @@
 # ==================== 论文数据源 ====================
 
 # HuggingFace API 基础地址（可选）
-# 默认使用国内镜像 https://hf-mirror.com，国内服务器无需代理即可访问。
-# 如需切换回原站，取消注释下面这行：
-# HF_API_BASE=https://huggingface.co
+# 默认使用官方站 https://huggingface.co。
+# 如需使用国内镜像，取消注释下面这行：
+# HF_API_BASE=https://hf-mirror.com
 
 # HTTP/SOCKS 代理（可选）
-# 如果使用原站且服务器在国内，需要配置代理。支持 HTTP/HTTPS/SOCKS5 协议。
-# 使用国内镜像时不需要配置代理。
+# 如果服务器访问外网受限，可配置代理。支持 HTTP/HTTPS/SOCKS5 协议。
 # HTTPS_PROXY=socks5://127.0.0.1:1080
 # HTTP_PROXY=http://127.0.0.1:7890
 
-# ==================== LLM API 密钥 ====================
-# 至少配置一个，前端论文分析功能才能使用。
-# 这些密钥通过 Vite 注入到前端，分析在浏览器中直接调用 LLM API。
+# ==================== OpenAI API ====================
+# 必填：后端 AI 分析（GPT-4o）所需。
 
-GEMINI_API_KEY=你的_Gemini_API_Key
-DEEPSEEK_API_KEY=你的_DeepSeek_API_Key
+OPENAI_API_KEY=你的_OpenAI_API_Key
+
+# OpenAI API 基础地址（可选）
+# 默认使用官方地址。如需使用第三方兼容接口，取消注释并修改：
+# OPENAI_BASE_URL=https://api.openai.com
 
 # ==================== 邮件服务（SMTP） ====================
 # 如果不配置 SMTP_HOST，系统会以「模拟模式」将邮件内容输出到控制台，不真正发送。
@@ -122,20 +121,16 @@ ADMIN_SESSION_SECRET=请使用一个很长且随机的字符串
 BASE_URL=https://your-domain.com
 
 # ==================== 定时任务（可选） ====================
-# 注意：FETCH_CRON_SCHEDULE 必须早于 EMAIL_CRON_SCHEDULE 执行，
-# 否则邮件发送时论文缓存可能尚未就绪。
+# 所有 cron 时间均为 UTC 时区。
 
-# 论文拉取 cron 表达式（默认每天 6:00 AM）
-# FETCH_CRON_SCHEDULE=0 6 * * *
-
-# 邮件发送 cron 表达式（默认每天 8:00 AM）
-# EMAIL_CRON_SCHEDULE=0 8 * * *
+# 抓取+分析+发邮件 cron 表达式（默认 UTC 1:00 AM，即北京时间 09:00）
+# FETCH_CRON_SCHEDULE=0 1 * * *
 
 # 论文拉取失败后的重试间隔（分钟），默认 10
 # FETCH_RETRY_INTERVAL_MINUTES=10
 
-# 论文拉取重试截止时间（小时），默认 8（即 8:00 AM 后停止重试）
-# FETCH_RETRY_DEADLINE_HOUR=8
+# 论文拉取重试截止时间（UTC 小时），默认 4（即 UTC 4:00 后停止重试）
+# FETCH_RETRY_DEADLINE_HOUR=4
 
 # ==================== 性能调优（可选） ====================
 
@@ -156,10 +151,10 @@ BASE_URL=https://your-domain.com
 
 | 变量 | 必填 | 默认值 | 说明 |
 |------|------|--------|------|
-| `HF_API_BASE` | 否 | `https://hf-mirror.com` | HF API 基础地址，国内默认用镜像站 |
+| `HF_API_BASE` | 否 | `https://huggingface.co` | HF API 基础地址 |
 | `HTTPS_PROXY` / `HTTP_PROXY` | 否 | 无 | 代理地址，支持 `http://`、`socks5://` 等 |
-| `GEMINI_API_KEY` | 否 | 无 | Google Gemini API 密钥（前端分析用） |
-| `DEEPSEEK_API_KEY` | 否 | 无 | DeepSeek API 密钥（前端分析用） |
+| `OPENAI_API_KEY` | **是** | 无 | OpenAI API 密钥，后端 GPT-4o 分析必需 |
+| `OPENAI_BASE_URL` | 否 | `https://api.openai.com` | OpenAI 兼容接口地址 |
 | `SMTP_HOST` | 否 | 无 | 不配置则邮件输出到控制台 |
 | `SMTP_PORT` | 否 | `587` | SMTP 端口 |
 | `SMTP_USER` | 否 | 无 | SMTP 用户名 |
@@ -171,10 +166,9 @@ BASE_URL=https://your-domain.com
 | `UNSUBSCRIBE_SECRET` | 否 | 同 `ADMIN_SESSION_SECRET` | 退订链接 HMAC 签名密钥 |
 | `CONFIRM_SECRET` | 否 | 同 `ADMIN_SESSION_SECRET` | 订阅确认邮件 HMAC 签名密钥 |
 | `BASE_URL` | **建议配置** | `http://localhost:3001` | 服务公网 URL，用于生成退订/确认链接 |
-| `FETCH_CRON_SCHEDULE` | 否 | `0 6 * * *` | 论文拉取 cron 表达式 |
-| `EMAIL_CRON_SCHEDULE` | 否 | `0 8 * * *` | 邮件发送 cron 表达式（必须晚于拉取） |
+| `FETCH_CRON_SCHEDULE` | 否 | `0 1 * * *` | 抓取+分析+发邮件 cron 表达式（UTC） |
 | `FETCH_RETRY_INTERVAL_MINUTES` | 否 | `10` | 论文拉取失败重试间隔（分钟） |
-| `FETCH_RETRY_DEADLINE_HOUR` | 否 | `8` | 重试截止小时，超过后停止重试 |
+| `FETCH_RETRY_DEADLINE_HOUR` | 否 | `4` | 重试截止 UTC 小时，超过后停止重试 |
 | `EMAIL_CONCURRENCY` | 否 | `5` | 批量发送邮件的并发数 |
 | `SUBSCRIBERS_FILE` | 否 | `server/subscribers.json` | 订阅者数据文件路径 |
 | `EMAIL_LOG_PATH` | 否 | `server/email-send-log.jsonl` | 邮件发送日志文件路径 |
@@ -185,25 +179,20 @@ BASE_URL=https://your-domain.com
 
 ## 功能细节
 
-### 1. 论文获取与缓存逻辑
+### 1. 论文获取与分析流程
 
-- 后端 `server/server.ts` 中定义了 `fetchFromHuggingFace` 函数，从 HF API 获取数据。
-- 拉取到的论文会通过 `server/papersCacheFile.ts` 持久化到 `server/papers-cache.json`。
+- 后端 `fetchFromHuggingFace` 从 HF API 获取数据，按 upvotes 降序排列后写入 `server/papers-cache.json`。
+- 随后对 Top 10 论文调用 OpenAI GPT-4o 进行中文分析，结果写入 `server/analyze_papers_result.json`。
 - `/api/papers` 接口行为：
-  - 默认请求：优先读取磁盘缓存返回，缓存为空时自动拉取 HF API。
-  - `?refresh=true`：强制从 HF API 拉取并更新磁盘缓存。
-  - HF API 失败时：返回已有的磁盘缓存（即使过期）。
-- 论文数据结构包含：ID、标题、摘要、作者、发布时间、链接、分类、upvotes。
-- 前端调用 `/api/papers` 获取论文列表，并根据用户选择的大模型调用浏览器端的分析服务。
+  - 默认请求：读取 `analyze_papers_result.json`（带 AI 分析），若不存在或非今日数据则自动触发完整的抓取+分析流程。
+  - `?refresh=true`：强制重新抓取并分析。
+  - 若 `OPENAI_API_KEY` 未配置或分析失败，返回 503 错误。
 
 ### 2. 定时任务
 
-| 时间 | 任务 | 说明 |
-|------|------|------|
-| 6:00 AM | 拉取论文 | 从 HF API 获取当天论文并写入磁盘缓存。失败后每 `FETCH_RETRY_INTERVAL_MINUTES` 分钟重试，直到 `FETCH_RETRY_DEADLINE_HOUR` 点停止 |
-| 8:00 AM | 发送邮件 | 读取磁盘缓存，校验日期为今天后以 `EMAIL_CONCURRENCY` 并发向所有订阅者发送日报邮件，逐封记录结果到日志 |
-
-两个 cron 时间均可通过环境变量调整，但**论文拉取必须早于邮件发送**，否则邮件发送时缓存可能尚未就绪。
+| 时间（UTC） | 任务 | 说明 |
+|-------------|------|------|
+| 1:00 AM | 抓取 + 分析 + 发邮件 | 从 HF API 获取论文 → GPT-4o 分析 Top 10 → 发送每日邮件。失败后每 `FETCH_RETRY_INTERVAL_MINUTES` 分钟重试，直到 UTC `FETCH_RETRY_DEADLINE_HOUR` 点停止 |
 
 ### 3. 订阅功能实现
 
@@ -247,9 +236,9 @@ BASE_URL=https://your-domain.com
     - **注意**：管理员会话存储在内存中，服务器重启后需要重新登录。
 - 退出登录：调用 `POST /api/admin/logout`，删除会话并清除 Cookie。
 
-#### 4.2 订阅者管理 API
+#### 4.2 API 接口一览
 
-所有管理接口都在 `/api/admin/*` 路径下，且必须通过管理员认证：
+管理接口（需认证）：
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -259,10 +248,10 @@ BASE_URL=https://your-domain.com
 | `GET` | `/api/admin/subscribers` | 获取所有订阅者 |
 | `POST` | `/api/admin/subscribers` | 直接添加订阅者 `{ email, sendWelcome? }`（跳过 double opt-in） |
 | `DELETE` | `/api/admin/subscribers/:id` | 删除订阅者 |
-| `POST` | `/api/admin/send-test-email` | 发送测试邮件 `{ email }`，失败时返回错误详情 |
-| `GET` | `/api/admin/email-logs` | 查看最近 20 次批量发送日志（含成功/失败数、耗时、逐封详情） |
+| `POST` | `/api/admin/send-test-email` | 发送测试邮件 `{ email }` |
+| `GET` | `/api/admin/email-logs` | 查看最近 20 次批量发送日志 |
 
-**公开接口**（无需认证）：
+公开接口：
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -324,14 +313,15 @@ npm run build
 后端是一个独立运行的 Node.js 服务，负责：
 
 - 从 HF API 拉取论文并缓存到磁盘
+- 调用 OpenAI GPT-4o 分析论文
 - 处理订阅/退订接口
 - 管理后台接口
 - 发送欢迎邮件与每日摘要邮件
-- 执行 6:00 / 8:00 两个定时任务
+- 执行 UTC 1:00 AM 定时任务
 
 #### 必要文件
 
-- `server/` 目录（`server.ts`、`subscriberStoreFile.ts`、`papersCacheFile.ts`）
+- `server/` 目录（`server.ts`、`subscriberStoreFile.ts`、`papersCacheFile.ts`、`analyzedPapersCacheFile.ts`、`analyzeService.ts`）
 - `package.json` / `package-lock.json`
 - `tsconfig.json`
 - `.env`（环境变量配置）
@@ -340,6 +330,7 @@ npm run build
 
 - `server/subscribers.json` — 订阅者数据（不存在时自动创建）
 - `server/papers-cache.json` — 论文缓存（不存在时自动创建）
+- `server/analyze_papers_result.json` — AI 分析结果缓存（不存在时自动创建）
 - `server/email-send-log.jsonl` — 邮件发送日志（不存在时自动创建，超 1000 行自动截断）
 
 #### 启动后端服务
@@ -366,7 +357,7 @@ pm2 start "npm run server" --name ai-insight-server
 #### 数据备份
 
 - **订阅者数据**：定期备份 `server/subscribers.json` 即可。
-- **论文缓存**：`server/papers-cache.json` 无需备份，会自动重新拉取。
+- **论文缓存**：`server/papers-cache.json` 和 `server/analyze_papers_result.json` 无需备份，会自动重新生成。
 - **自定义路径**：可设置 `SUBSCRIBERS_FILE=/path/to/subscribers.json` 指定存储位置（适合 Docker 挂载持久化卷）。
 
 ---
@@ -376,15 +367,16 @@ pm2 start "npm run server" --name ai-insight-server
 - [ ] 前端 `npm run build` 成功，`dist/` 已部署到静态服务器
 - [ ] 服务器上存在 `.env`，且已配置正确的环境变量
 - [ ] `ADMIN_PASSWORD` 和 `ADMIN_SESSION_SECRET` 已修改为强随机值
+- [ ] `OPENAI_API_KEY` 已配置（论文分析必需）
 - [ ] `BASE_URL` 已配置为服务的实际公网地址（用于生成退订/确认链接）
-- [ ] 后端服务已启动，访问 `http://<server>:3001/api/papers` 能返回数据
+- [ ] 后端服务已启动，访问 `http://<server>:3001/api/papers` 能返回带 AI 分析的数据
 - [ ] 通过浏览器访问首页 `/` 可以正常加载论文列表
 - [ ] 通过 `/admin` 可以登录后台，能正常管理订阅者
 - [ ] 若配置了 SMTP：
   - 用新邮箱订阅后能收到确认邮件，点击链接后成功加入订阅
   - 可通过管理后台「发送测试邮件」验证邮件模板和退订链接
   - 退订链接可正常打开确认页面并完成退订
-  - 定时任务（6:00 拉取 + 8:00 发送）能正常工作
+  - 定时任务（UTC 1:00 AM）能正常工作
   - 管理后台「邮件发送日志」能查看到发送记录
 - [ ] 邮件到达率（可选，提高邮件进入收件箱概率）：
   - 配置域名 SPF 记录
