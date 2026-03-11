@@ -1,7 +1,24 @@
 {
   "version": 1,
-  "dateKey": "2026-03-10",
+  "dateKey": "2026-03-11",
   "papers": [
+    {
+      "id": "2603.05890",
+      "title": "Lost in Stories: Consistency Bugs in Long Story Generation by LLMs",
+      "summary": "What happens when a storyteller forgets its own story? Large Language Models (LLMs) can now generate narratives spanning tens of thousands of words, but they often fail to maintain consistency throughout. When generating long-form narratives, these models can contradict their own established facts, character traits, and world rules. Existing story generation benchmarks focus mainly on plot quality and fluency, leaving consistency errors largely unexplored. To address this gap, we present ConStory-Bench, a benchmark designed to evaluate narrative consistency in long-form story generation. It contains 2,000 prompts across four task scenarios and defines a taxonomy of five error categories with 19 fine-grained subtypes. We also develop ConStory-Checker, an automated pipeline that detects contradictions and grounds each judgment in explicit textual evidence. Evaluating a range of LLMs through five research questions, we find that consistency errors show clear tendencies: they are most common in factual and temporal dimensions, tend to appear around the middle of narratives, occur in text segments with higher token-level entropy, and certain error types tend to co-occur. These findings can inform future efforts to improve consistency in long-form narrative generation. Our project page is available at https://picrew.github.io/constory-bench.github.io/.",
+      "authors": [
+        "Junjie Li",
+        "Xinrui Guo",
+        "Yuhao Wu",
+        "Roy Ka-Wei Lee",
+        "Hongzhi Li",
+        "Yutao Xie"
+      ],
+      "published": "2026-03-06T04:16:46.000Z",
+      "link": "https://huggingface.co/papers/2603.05890",
+      "category": "large language models",
+      "upvotes": 72
+    },
     {
       "id": "2603.07660",
       "title": "Holi-Spatial: Evolving Video Streams into Holistic 3D Spatial Intelligence",
@@ -28,7 +45,26 @@
       "published": "2026-03-08T14:49:20.000Z",
       "link": "https://huggingface.co/papers/2603.07660",
       "category": "3D Gaussian Splatting",
-      "upvotes": 52
+      "upvotes": 65
+    },
+    {
+      "id": "2603.03269",
+      "title": "LoGeR: Long-Context Geometric Reconstruction with Hybrid Memory",
+      "summary": "Feedforward geometric foundation models achieve strong short-window reconstruction, yet scaling them to minutes-long videos is bottlenecked by quadratic attention complexity or limited effective memory in recurrent designs. We present LoGeR (Long-context Geometric Reconstruction), a novel architecture that scales dense 3D reconstruction to extremely long sequences without post-optimization. LoGeR processes video streams in chunks, leveraging strong bidirectional priors for high-fidelity intra-chunk reasoning. To manage the critical challenge of coherence across chunk boundaries, we propose a learning-based hybrid memory module. This dual-component system combines a parametric Test-Time Training (TTT) memory to anchor the global coordinate frame and prevent scale drift, alongside a non-parametric Sliding Window Attention (SWA) mechanism to preserve uncompressed context for high-precision adjacent alignment. Remarkably, this memory architecture enables LoGeR to be trained on sequences of 128 frames, and generalize up to thousands of frames during inference. Evaluated across standard benchmarks and a newly repurposed VBR dataset with sequences of up to 19k frames, LoGeR substantially outperforms prior state-of-the-art feedforward methods--reducing ATE on KITTI by over 74%--and achieves robust, globally consistent reconstruction over unprecedented horizons.",
+      "authors": [
+        "Junyi Zhang",
+        "Charles Herrmann",
+        "Junhwa Hur",
+        "Chen Sun",
+        "Ming-Hsuan Yang",
+        "Forrester Cole",
+        "Trevor Darrell",
+        "Deqing Sun"
+      ],
+      "published": "2026-03-03T18:55:37.000Z",
+      "link": "https://huggingface.co/papers/2603.03269",
+      "category": "feedforward geometric foundation models",
+      "upvotes": 41
     },
     {
       "id": "2603.03872",
@@ -43,7 +79,7 @@
       "published": "2026-03-04T09:25:36.000Z",
       "link": "https://huggingface.co/papers/2603.03872",
       "category": "Gaussian Mixture Models",
-      "upvotes": 35
+      "upvotes": 38
     },
     {
       "id": "2603.08660",
@@ -75,26 +111,7 @@
       "published": "2026-03-09T17:38:11.000Z",
       "link": "https://huggingface.co/papers/2603.08660",
       "category": "unsupervised reinforcement learning",
-      "upvotes": 30
-    },
-    {
-      "id": "2603.03269",
-      "title": "LoGeR: Long-Context Geometric Reconstruction with Hybrid Memory",
-      "summary": "Feedforward geometric foundation models achieve strong short-window reconstruction, yet scaling them to minutes-long videos is bottlenecked by quadratic attention complexity or limited effective memory in recurrent designs. We present LoGeR (Long-context Geometric Reconstruction), a novel architecture that scales dense 3D reconstruction to extremely long sequences without post-optimization. LoGeR processes video streams in chunks, leveraging strong bidirectional priors for high-fidelity intra-chunk reasoning. To manage the critical challenge of coherence across chunk boundaries, we propose a learning-based hybrid memory module. This dual-component system combines a parametric Test-Time Training (TTT) memory to anchor the global coordinate frame and prevent scale drift, alongside a non-parametric Sliding Window Attention (SWA) mechanism to preserve uncompressed context for high-precision adjacent alignment. Remarkably, this memory architecture enables LoGeR to be trained on sequences of 128 frames, and generalize up to thousands of frames during inference. Evaluated across standard benchmarks and a newly repurposed VBR dataset with sequences of up to 19k frames, LoGeR substantially outperforms prior state-of-the-art feedforward methods--reducing ATE on KITTI by over 74%--and achieves robust, globally consistent reconstruction over unprecedented horizons.",
-      "authors": [
-        "Junyi Zhang",
-        "Charles Herrmann",
-        "Junhwa Hur",
-        "Chen Sun",
-        "Ming-Hsuan Yang",
-        "Forrester Cole",
-        "Trevor Darrell",
-        "Deqing Sun"
-      ],
-      "published": "2026-03-03T18:55:37.000Z",
-      "link": "https://huggingface.co/papers/2603.03269",
-      "category": "feedforward geometric foundation models",
-      "upvotes": 30
+      "upvotes": 37
     },
     {
       "id": "2603.08589",
@@ -110,7 +127,7 @@
       "published": "2026-03-09T16:40:47.000Z",
       "link": "https://huggingface.co/papers/2603.08589",
       "category": "diffusion models",
-      "upvotes": 27
+      "upvotes": 29
     },
     {
       "id": "2603.08652",
@@ -134,7 +151,7 @@
       "published": "2026-03-09T17:31:16.000Z",
       "link": "https://huggingface.co/papers/2603.08652",
       "category": "Unified Multimodal Models",
-      "upvotes": 23
+      "upvotes": 26
     },
     {
       "id": "2603.08703",
@@ -151,7 +168,7 @@
       "published": "2026-03-09T17:58:16.000Z",
       "link": "https://huggingface.co/papers/2603.08703",
       "category": "autoregressive diffusion",
-      "upvotes": 21
+      "upvotes": 23
     },
     {
       "id": "2603.07980",
@@ -185,41 +202,22 @@
       "published": "2026-03-09T05:32:42.000Z",
       "link": "https://huggingface.co/papers/2603.07980",
       "category": "",
-      "upvotes": 17
+      "upvotes": 20
     },
     {
-      "id": "2603.05890",
-      "title": "Lost in Stories: Consistency Bugs in Long Story Generation by LLMs",
-      "summary": "What happens when a storyteller forgets its own story? Large Language Models (LLMs) can now generate narratives spanning tens of thousands of words, but they often fail to maintain consistency throughout. When generating long-form narratives, these models can contradict their own established facts, character traits, and world rules. Existing story generation benchmarks focus mainly on plot quality and fluency, leaving consistency errors largely unexplored. To address this gap, we present ConStory-Bench, a benchmark designed to evaluate narrative consistency in long-form story generation. It contains 2,000 prompts across four task scenarios and defines a taxonomy of five error categories with 19 fine-grained subtypes. We also develop ConStory-Checker, an automated pipeline that detects contradictions and grounds each judgment in explicit textual evidence. Evaluating a range of LLMs through five research questions, we find that consistency errors show clear tendencies: they are most common in factual and temporal dimensions, tend to appear around the middle of narratives, occur in text segments with higher token-level entropy, and certain error types tend to co-occur. These findings can inform future efforts to improve consistency in long-form narrative generation. Our project page is available at https://picrew.github.io/constory-bench.github.io/.",
+      "id": "2603.08397",
+      "title": "NLE: Non-autoregressive LLM-based ASR by Transcript Editing",
+      "summary": "While autoregressive (AR) LLM-based ASR systems achieve strong accuracy, their sequential decoding limits parallelism and incurs high latency. We propose NLE, a non-autoregressive (NAR) approach that formulates speech recognition as conditional transcript editing, enabling fully parallel prediction. NLE extracts acoustic embeddings and an initial hypothesis from a pretrained speech encoder, then refines the hypothesis using a bidirectional LLM editor trained with a latent alignment objective. An interleaved padding strategy exploits the identity mapping bias of Transformers, allowing the model to focus on corrections rather than full reconstruction. On the Open ASR leaderboard, NLE++ achieves 5.67% average WER with an RTFx (inverse real-time factor) of 1630. In single-utterance scenarios, NLE achieves 27x speedup over the AR baseline, making it suitable for real-time applications.",
       "authors": [
-        "Junjie Li",
-        "Xinrui Guo",
-        "Yuhao Wu",
-        "Roy Ka-Wei Lee",
-        "Hongzhi Li",
-        "Yutao Xie"
+        "Avihu Dekel",
+        "Samuel Thomas",
+        "Takashi Fukada",
+        "George Saon"
       ],
-      "published": "2026-03-06T04:16:46.000Z",
-      "link": "https://huggingface.co/papers/2603.05890",
-      "category": "large language models",
-      "upvotes": 16
-    },
-    {
-      "id": "2603.06713",
-      "title": "Scaling Agentic Capabilities, Not Context: Efficient Reinforcement Finetuning for Large Toolspaces",
-      "summary": "Agentic systems operating over large tool ecosystems must plan and execute long-horizon workflows under weak or non-verifiable supervision. While frontier models mitigate these challenges through scale and large context budgets, small language models (SLMs) remain brittle: eager tool loading saturates context, execution errors compound over time, and sparse rewards limit learning. We introduce ATLAS, a reinforcement finetuning framework that enables SLMs to operate effectively in large-scale toolspace environments by learning how to acquire context and how to execute actions. Our approach makes two key contributions. First, we treat context control and execution structure as learnable decisions, combining iterative tool loading with programmatic tool orchestration to bound context growth and stabilize long-horizon trajectories. Second, we propose rubric-based reinforcement finetuning, which decomposes task success into structured, task-aligned criteria and enables scalable training using small judge models. Across MCP benchmarks, these design choices yield large and consistent gains over generic RL baselines, allowing a 4B SLM to approach frontier-agent performance under far tighter parameter and context budgets.",
-      "authors": [
-        "Karan Gupta",
-        "Pranav Vajreshwari",
-        "Yash Pandya",
-        "Raghav Magazine",
-        "Akshay Nambi",
-        "Ahmed Awadallah"
-      ],
-      "published": "2026-03-05T20:29:12.000Z",
-      "link": "https://huggingface.co/papers/2603.06713",
-      "category": "reinforcement fine-tuning",
-      "upvotes": 9
+      "published": "2026-03-09T13:56:52.000Z",
+      "link": "https://huggingface.co/papers/2603.08397",
+      "category": "autoregressive",
+      "upvotes": 12
     }
   ]
 }
