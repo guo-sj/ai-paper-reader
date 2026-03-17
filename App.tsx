@@ -192,6 +192,8 @@ const App: React.FC = () => {
           categories={categories}
           selected={selectedCategory}
           onSelect={handleCategorySelect}
+          categoryCounts={Object.fromEntries(categories.map(c => [c.id, papers.filter(p => p.analysis?.categories?.includes(c.id)).length]))}
+          totalCount={papers.length}
         />
       )}
 

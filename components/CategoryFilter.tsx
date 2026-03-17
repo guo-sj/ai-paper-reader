@@ -5,14 +5,16 @@ interface CategoryFilterProps {
   categories: CategoryInfo[];
   selected: string | null; // null = "All"
   onSelect: (categoryId: string | null) => void;
+  categoryCounts: Record<string, number>;
+  totalCount: number;
 }
 
-const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, onSelect }) => {
+const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, onSelect, categoryCounts, totalCount }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const allTabs: Array<{ id: string | null; label: string }> = [
-    { id: null, label: 'All' },
-    ...categories.map(c => ({ id: c.id, label: c.label })),
+  const allTabs: Array<{ id: string | null; label: string; count: number }> = [
+    { id: null, label: 'All', count: totalCount },
+    ...categories.map(c => ({ id: c.id, label: c.label, count: categoryCounts[c.id] ?? 0 })),
   ];
 
   return (
@@ -33,7 +35,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories, selected, o
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}
             `}
           >
-            {tab.label}
+            {tab.label} <span className="opacity-70">({tab.count})</span>
           </button>
         ))}
       </div>
