@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArxivPaper, PaperAnalysis } from '../types';
+import { ArxivPaper, PaperAnalysis, CategoryInfo } from '../types';
 
 interface PaperCardProps {
   paper: ArxivPaper & { analysis?: PaperAnalysis };
@@ -7,6 +7,7 @@ interface PaperCardProps {
   isLoadingAnalysis?: boolean;
   rank?: number;        // 1, 2, or 3 — shows rank badge
   isHiddenGem?: boolean;
+  categories?: CategoryInfo[];   // NEW: for resolving category ID → label
 }
 
 const RANK_COLORS: Record<number, string> = {
@@ -15,8 +16,11 @@ const RANK_COLORS: Record<number, string> = {
   3: 'bg-amber-600 text-white',
 };
 
-const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysis = false, rank, isHiddenGem = false }) => {
+const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysis = false, rank, isHiddenGem = false, categories = [] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const categoryLabelMap = new Map(categories.map(c => [c.id, c.label]));
+  const getCategoryLabel = (id: string) => categoryLabelMap.get(id) ?? id;
 
   const formattedDate = new Date(paper.published).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -40,7 +44,7 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysi
             {analysis?.categories && analysis.categories.length > 0 ? (
               analysis.categories.map(cat => (
                 <span key={cat} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded uppercase tracking-wider">
-                  {cat}
+                  {getCategoryLabel(cat)}
                 </span>
               ))
             ) : (

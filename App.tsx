@@ -250,6 +250,7 @@ const App: React.FC = () => {
                     analysis={paper.analysis}
                     rank={selectedCategory && index < 3 ? index + 1 : undefined}
                     isHiddenGem={isHiddenGem(paper)}
+                    categories={categories}
                   />
                 ))}
               </div>
