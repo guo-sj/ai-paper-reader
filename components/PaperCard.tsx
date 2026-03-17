@@ -1,14 +1,21 @@
-
 import React, { useState } from 'react';
 import { ArxivPaper, PaperAnalysis } from '../types';
 
 interface PaperCardProps {
-  paper: ArxivPaper;
+  paper: ArxivPaper & { analysis?: PaperAnalysis };
   analysis?: PaperAnalysis;
-  isLoadingAnalysis: boolean;
+  isLoadingAnalysis?: boolean;
+  rank?: number;        // 1, 2, or 3 — shows rank badge
+  isHiddenGem?: boolean;
 }
 
-const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysis }) => {
+const RANK_COLORS: Record<number, string> = {
+  1: 'bg-yellow-400 text-yellow-900',
+  2: 'bg-slate-300 text-slate-800',
+  3: 'bg-amber-600 text-white',
+};
+
+const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysis = false, rank, isHiddenGem = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const formattedDate = new Date(paper.published).toLocaleDateString('en-US', {
@@ -18,31 +25,59 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysi
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md hover:border-blue-200">
-      <div className="p-5">
+    <div className="relative bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md hover:border-blue-200">
+      {/* Rank badge */}
+      {rank && (
+        <div className={`absolute top-3 left-3 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black z-10 ${RANK_COLORS[rank] ?? 'bg-blue-100 text-blue-700'}`}>
+          #{rank}
+        </div>
+      )}
+
+      <div className={`p-5 ${rank ? 'pt-4' : ''}`}>
         <div className="flex justify-between items-start gap-4">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded uppercase tracking-wider">
-              {paper.category}
-            </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Category badges from AI analysis */}
+            {analysis?.categories && analysis.categories.length > 0 ? (
+              analysis.categories.map(cat => (
+                <span key={cat} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded uppercase tracking-wider">
+                  {cat}
+                </span>
+              ))
+            ) : (
+              <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded uppercase tracking-wider">
+                {paper.category}
+              </span>
+            )}
+
+            {/* Upvotes */}
             {paper.upvotes !== undefined && paper.upvotes > 0 && (
-              <span className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded">
+              <span className="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 text-xs font-semibold rounded">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                 </svg>
                 {paper.upvotes}
               </span>
             )}
+
+            {/* Hidden Gem badge */}
+            {isHiddenGem && (
+              <span
+                title="AI 评分极高但热度较低的隐藏好论文"
+                className="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-semibold rounded cursor-help"
+              >
+                Hidden Gem
+              </span>
+            )}
           </div>
-          <span className="text-slate-400 text-xs">{formattedDate}</span>
+          <span className="text-slate-400 text-xs flex-shrink-0">{formattedDate}</span>
         </div>
-        
-        <h3 className="mt-3 text-lg font-bold text-slate-900 leading-snug">
+
+        <h3 className={`${rank ? 'mt-2' : 'mt-3'} text-lg font-bold text-slate-900 leading-snug`}>
           <a href={paper.link} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">
             {paper.title}
           </a>
         </h3>
-        
+
         <p className="mt-2 text-sm text-slate-500 line-clamp-2">
           By {paper.authors.slice(0, 3).join(', ')}{paper.authors.length > 3 ? ' et al.' : ''}
         </p>
@@ -83,7 +118,7 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysi
                   {analysis.relevanceScore}/10
                 </span>
               </div>
-              <button 
+              <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="text-xs font-medium text-blue-600 hover:underline"
               >
@@ -98,7 +133,7 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysi
         )}
 
         {isExpanded && (
-          <div className="mt-4 p-4 bg-slate-50 rounded text-xs text-slate-600 leading-relaxed animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="mt-4 p-4 bg-slate-50 rounded text-xs text-slate-600 leading-relaxed">
             <h4 className="font-bold mb-1">Abstract</h4>
             {paper.summary}
           </div>
