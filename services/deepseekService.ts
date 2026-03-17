@@ -97,6 +97,8 @@ async function analyzeBatch(
       keyInnovation: String(analysis.keyInnovation ?? ''),
       potentialImpact: String(analysis.potentialImpact ?? ''),
       relevanceScore: Number(analysis.relevanceScore) || 0,
+      categories: [],
+      categoryScores: {},
     };
   }
   return record;
