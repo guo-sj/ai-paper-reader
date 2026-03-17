@@ -310,6 +310,49 @@ const getYesterdayKey = (): string => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
+// --- Categories Config ---
+
+interface CategoryDef {
+    id: string;
+    label: string;
+    aliases: string[];
+}
+
+interface CategoriesConfig {
+    version: number;
+    scoring: { w_upvotes: number; w_relevance: number; w_category: number };
+    categories: CategoryDef[];
+}
+
+async function readCategoriesConfig(): Promise<CategoriesConfig> {
+    const filePath = path.resolve(__dirname, 'categories.json');
+    try {
+        const raw = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(raw) as CategoriesConfig;
+    } catch {
+        return {
+            version: 1,
+            scoring: { w_upvotes: 0.3, w_relevance: 0.3, w_category: 0.4 },
+            categories: [],
+        };
+    }
+}
+
+function computeFinalScore(
+    paper: AnalyzedPaper,
+    category: string | undefined,
+    allPapers: AnalyzedPaper[],
+    weights: { w_upvotes: number; w_relevance: number; w_category: number }
+): number {
+    const maxUpvotes = Math.max(...allPapers.map(p => p.upvotes ?? 0), 1);
+    const u = Math.min(paper.upvotes ?? 0, maxUpvotes) / maxUpvotes;
+    const r = (paper.analysis?.relevanceScore ?? 0) / 10;
+    const c = category
+        ? (paper.analysis?.categoryScores?.[category] ?? 0) / 10
+        : 0.5;
+    return weights.w_upvotes * u + weights.w_relevance * r + weights.w_category * c;
+}
+
 // --- Fetch Papers Logic ---
 
 /** Fetch papers from HuggingFace API, filter/sort, and return them. Does NOT touch cache. */
@@ -387,19 +430,12 @@ const fetchAndCachePapers = async () => {
     return papers;
 };
 
-/**
- * Fetch papers, persist to papers-cache.json, then analyze top 10 with OpenAI
- * and persist results to analyze_papers_result.json.
- * If analysis fails (no API key or API error), the analyzed cache is NOT written
- * so the 8AM email cron will skip sending.
- */
 const fetchAndAnalyzePapers = async (): Promise<void> => {
     const papers = await fetchAndCachePapers();
     if (papers.length === 0) {
         console.warn('[fetchAndAnalyzePapers] No papers fetched from HF, skipping analysis.');
         return;
     }
-    const top10 = papers.slice(0, 10);
     const todayKey = getTodayKey();
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -407,13 +443,48 @@ const fetchAndAnalyzePapers = async (): Promise<void> => {
         throw new Error('论文分析服务未配置（缺少 OPENAI_API_KEY）');
     }
 
-    console.log(`[fetchAndAnalyzePapers] Analyzing top ${top10.length} papers with OpenAI...`);
-    const analyses = await analyzeWithOpenAI(top10, apiKey);
-    const analyzedPapers: AnalyzedPaper[] = top10.map((p) => ({
-        ...p,
-        analysis: analyses[p.id],
-    }));
-    await writeAnalyzedPapersCache(todayKey, analyzedPapers);
+    // Read categories config for prompt injection
+    const config = await readCategoriesConfig();
+    const categoryIds = config.categories.map(c => c.id);
+
+    // Load existing analyzed cache for today
+    const existingCache = await readAnalyzedPapersCache();
+    const isToday = existingCache?.dateKey === todayKey;
+    const alreadyAnalyzedIds = new Set(
+        isToday ? existingCache!.papers.map(p => p.id) : []
+    );
+
+    // Papers that haven't been analyzed yet
+    const toAnalyze = papers.filter(p => !alreadyAnalyzedIds.has(p.id));
+
+    // Build the merged result: start from existing (if today) or empty
+    const existingById: Record<string, AnalyzedPaper> = {};
+    if (isToday && existingCache) {
+        for (const p of existingCache.papers) {
+            existingById[p.id] = p;
+        }
+    }
+
+    if (toAnalyze.length > 0) {
+        console.log(`[fetchAndAnalyzePapers] Analyzing ${toAnalyze.length} new papers (${alreadyAnalyzedIds.size} already cached)...`);
+        const analyses = await analyzeWithOpenAI(toAnalyze, apiKey, categoryIds);
+        for (const p of toAnalyze) {
+            existingById[p.id] = { ...p, analysis: analyses[p.id] };
+        }
+    } else {
+        console.log('[fetchAndAnalyzePapers] All papers already analyzed, updating upvotes only.');
+    }
+
+    // Always refresh upvotes from latest fetch
+    for (const p of papers) {
+        if (existingById[p.id]) {
+            existingById[p.id] = { ...existingById[p.id], upvotes: p.upvotes };
+        }
+    }
+
+    // Write merged result preserving today's order (by upvotes descending)
+    const merged = papers.map(p => existingById[p.id] ?? { ...p }).filter(Boolean);
+    await writeAnalyzedPapersCache(todayKey, merged);
     console.log('[fetchAndAnalyzePapers] Analysis complete and saved to analyze_papers_result.json.');
 };
 
@@ -654,7 +725,6 @@ app.post('/api/admin/send-test-email', requireAdminAuth, async (req, res) => {
 });
 
 app.get('/api/papers', async (req, res) => {
-    const limit = req.query.limit ? Number(req.query.limit) : 12;
     const refresh = req.query.refresh === 'true';
     const todayKey = getTodayKey();
 
@@ -671,10 +741,33 @@ app.get('/api/papers', async (req, res) => {
         if (!result || result.papers.length === 0) {
             return res.status(503).json({ error: '暂无论文数据，请稍后重试' });
         }
-        return res.json(result.papers.slice(0, limit));
+
+        const config = await readCategoriesConfig();
+        const papers = result.papers;
+
+        // Sort by finalScore (All view: category dimension = 0.5)
+        const sorted = [...papers].sort((a, b) =>
+            computeFinalScore(b, undefined, papers, config.scoring) -
+            computeFinalScore(a, undefined, papers, config.scoring)
+        );
+
+        return res.json({ papers: sorted, totalCount: sorted.length });
     } catch (error: any) {
         console.error('Error in /api/papers:', error);
         return res.status(503).json({ error: error.message || '论文获取或分析失败' });
+    }
+});
+
+app.get('/api/categories', async (_req, res) => {
+    try {
+        const config = await readCategoriesConfig();
+        return res.json({
+            scoring: config.scoring,
+            categories: config.categories.map(c => ({ id: c.id, label: c.label })),
+        });
+    } catch (error) {
+        console.error('Error reading categories:', error);
+        return res.status(500).json({ error: 'Failed to load categories' });
     }
 });
 
@@ -690,7 +783,9 @@ app.post('/api/analyze', async (req, res) => {
     }
 
     try {
-        const result = await analyzeWithOpenAI(papers, apiKey);
+        const config = await readCategoriesConfig();
+        const categoryIds = config.categories.map((c: { id: string }) => c.id);
+        const result = await analyzeWithOpenAI(papers, apiKey, categoryIds);
         return res.json(result);
     } catch (error: any) {
         console.error('[/api/analyze] Error:', error);
