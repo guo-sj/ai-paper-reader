@@ -49,6 +49,7 @@ const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(getCategoryFromUrl);
   const [loadingPapers, setLoadingPapers] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [categoryLoadError, setCategoryLoadError] = useState(false);
 
   // Load categories on mount
   useEffect(() => {
@@ -57,7 +58,10 @@ const App: React.FC = () => {
         setCategories(cats);
         setScoring(sc);
       })
-      .catch(err => console.warn('Failed to load categories:', err));
+      .catch(err => {
+        console.warn('Failed to load categories:', err);
+        setCategoryLoadError(true);
+      });
   }, []);
 
   const loadData = useCallback(async (forceRefresh: boolean = false) => {
@@ -177,7 +181,13 @@ const App: React.FC = () => {
       </header>
 
       {/* Category Filter */}
-      {categories.length > 0 && (
+      {categoryLoadError ? (
+        <div className="border-b border-slate-200 bg-white sticky top-[73px] z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 text-xs text-amber-600">
+            分类加载失败，请刷新页面重试。
+          </div>
+        </div>
+      ) : categories.length > 0 && (
         <CategoryFilter
           categories={categories}
           selected={selectedCategory}

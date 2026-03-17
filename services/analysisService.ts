@@ -22,7 +22,8 @@ function getEnv(name: string): string | undefined {
 export async function analyzePapers(
   papers: ArxivPaper[],
   providerId: string,
-  modelId: string
+  modelId: string,
+  categoryIds: string[] = []
 ): Promise<Record<string, PaperAnalysis>> {
   if (papers.length === 0) return {};
 
@@ -39,15 +40,15 @@ export async function analyzePapers(
   }
 
   if (providerId === 'gemini') {
-    return geminiAnalyzePapers(papers, modelId);
+    return geminiAnalyzePapers(papers, modelId, categoryIds);
   }
 
   if (providerId === 'deepseek') {
-    return deepseekAnalyzePapers(papers, modelId, apiKey);
+    return deepseekAnalyzePapers(papers, modelId, apiKey, categoryIds);
   }
 
   if (providerId === 'zhipu') {
-    return zhipuAnalyzePapers(papers, modelId, apiKey);
+    return zhipuAnalyzePapers(papers, modelId, apiKey, categoryIds);
   }
 
   console.error(`No implementation for provider: ${providerId}`);

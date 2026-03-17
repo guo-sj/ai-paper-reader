@@ -326,15 +326,13 @@ interface CategoriesConfig {
 
 async function readCategoriesConfig(): Promise<CategoriesConfig> {
     const filePath = path.resolve(__dirname, 'categories.json');
+    const raw = await fs.readFile(filePath, 'utf8').catch((err) => {
+        throw new Error(`Failed to read categories.json: ${err.message}`);
+    });
     try {
-        const raw = await fs.readFile(filePath, 'utf8');
         return JSON.parse(raw) as CategoriesConfig;
-    } catch {
-        return {
-            version: 1,
-            scoring: { w_upvotes: 0.3, w_relevance: 0.3, w_category: 0.4 },
-            categories: [],
-        };
+    } catch (err) {
+        throw new Error(`Failed to parse categories.json: ${(err as Error).message}`);
     }
 }
 

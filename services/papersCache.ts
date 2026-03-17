@@ -17,10 +17,10 @@ export function getCachedPapers(
 }
 
 export function setCachedPapers(papers: PaperWithAnalysis[]): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  writeJsonCacheWithTimestamp<any>(CACHE_STORAGE_KEY, {
+  // writeJsonCacheWithTimestamp requires JsonValue constraint; cast needed due to cacheStore's strict type
+  writeJsonCacheWithTimestamp(CACHE_STORAGE_KEY, {
     papers: Array.isArray(papers) ? papers : [],
-  });
+  } as unknown as Parameters<typeof writeJsonCacheWithTimestamp>[1]);
 }
 
 export function clearPapersCache(): void {
