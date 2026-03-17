@@ -120,22 +120,24 @@ const App: React.FC = () => {
 
   // Compute displayed papers
   const displayedPapers = (() => {
+    const maxUpvotes = Math.max(1, papers.reduce((m, p) => Math.max(m, p.upvotes ?? 0), 0));
+    const score = (paper: PaperWithAnalysis, category: string | null) => {
+      const u = Math.min(paper.upvotes ?? 0, maxUpvotes) / maxUpvotes;
+      const r = (paper.analysis?.relevanceScore ?? 0) / 10;
+      const c = category
+        ? (paper.analysis?.categoryScores?.[category] ?? 0) / 10
+        : 0.5;
+      return scoring.w_upvotes * u + scoring.w_relevance * r + scoring.w_category * c;
+    };
+
     if (selectedCategory === null) {
-      // All: sort by finalScore descending, show all
-      return [...papers].sort((a, b) =>
-        computeFinalScore(b, null, papers, scoring) -
-        computeFinalScore(a, null, papers, scoring)
-      );
+      return [...papers].sort((a, b) => score(b, null) - score(a, null));
     }
-    // Category view: filter by category, sort by score, take Top N
     const filtered = papers.filter(p =>
       p.analysis?.categories?.includes(selectedCategory)
     );
     return filtered
-      .sort((a, b) =>
-        computeFinalScore(b, selectedCategory, papers, scoring) -
-        computeFinalScore(a, selectedCategory, papers, scoring)
-      )
+      .sort((a, b) => score(b, selectedCategory) - score(a, selectedCategory))
       .slice(0, TOP_N);
   })();
 
