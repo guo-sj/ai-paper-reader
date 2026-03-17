@@ -33,7 +33,8 @@ function computeFinalScore(
 
 function isHiddenGem(paper: PaperWithAnalysis): boolean {
   if (!paper.analysis?.categoryScores) return false;
-  const maxCatScore = Math.max(...Object.values(paper.analysis.categoryScores), 0);
+  const scores = Object.values(paper.analysis.categoryScores);
+  const maxCatScore = scores.length > 0 ? scores.reduce((m, v) => Math.max(m, v), 0) : 0;
   return maxCatScore >= 9 && (paper.upvotes ?? 0) < 20;
 }
 
