@@ -76,7 +76,17 @@ async function analyzeBatch(
   const record: Record<string, PaperAnalysis> = {};
   analysesArray.forEach((analysis) => {
     if (analysis && analysis.paperId) {
-      record[analysis.paperId] = analysis;
+      record[analysis.paperId] = {
+        paperId: analysis.paperId,
+        geminiSummary: String(analysis.geminiSummary ?? ''),
+        keyInnovation: String(analysis.keyInnovation ?? ''),
+        potentialImpact: String(analysis.potentialImpact ?? ''),
+        relevanceScore: Number(analysis.relevanceScore) || 0,
+        categories: Array.isArray(analysis.categories) ? analysis.categories : [],
+        categoryScores: (analysis.categoryScores && typeof analysis.categoryScores === 'object' && !Array.isArray(analysis.categoryScores))
+          ? Object.fromEntries(Object.entries(analysis.categoryScores).map(([k, v]) => [k, Number(v) || 0]))
+          : {},
+      };
     }
   });
   return record;
