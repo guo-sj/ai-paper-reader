@@ -1,38 +1,76 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchLatestAIPapers } from './services/huggingFaceService';
-import { getCachedAnalyses, mergeCachedAnalyses } from './services/analysisCache';
+import { fetchLatestAIPapers, fetchCategories, PapersResponse, CategoriesResponse } from './services/huggingFaceService';
 import { getCachedPapers, setCachedPapers } from './services/papersCache';
 import { DEFAULT_CACHE_TTL_MS } from './services/cacheStore';
-import { ArxivPaper, PaperAnalysis } from './types';
+import { PaperWithAnalysis, CategoryInfo } from './types';
 import PaperCard from './components/PaperCard';
+import CategoryFilter from './components/CategoryFilter';
 import SubscriptionForm from './components/SubscriptionForm';
 
 const PAPER_CACHE_MAX_AGE_MS = DEFAULT_CACHE_TTL_MS;
-const ANALYSIS_CACHE_KEY = 'openai';
+const TOP_N = 5;
 
-/** Normalize API result to be keyed by paper.id for consistent cache/UI lookup. */
-function normalizeAnalysesByPaperId(
-  papers: ArxivPaper[],
-  result: Record<string, PaperAnalysis>
-): Record<string, PaperAnalysis> {
-  const normalized: Record<string, PaperAnalysis> = {};
-  for (const paper of papers) {
-    const a = result[paper.id] ?? Object.values(result).find((x) => x.paperId === paper.id || x.paperId?.endsWith(paper.id) || paper.id.endsWith(x.paperId ?? ''));
-    if (a) normalized[paper.id] = a;
+interface ScoringWeights {
+  w_upvotes: number;
+  w_relevance: number;
+  w_category: number;
+}
+
+function computeFinalScore(
+  paper: PaperWithAnalysis,
+  category: string | null,
+  allPapers: PaperWithAnalysis[],
+  weights: ScoringWeights
+): number {
+  const maxUpvotes = Math.max(1, allPapers.reduce((m, p) => Math.max(m, p.upvotes ?? 0), 0));
+  const u = Math.min(paper.upvotes ?? 0, maxUpvotes) / maxUpvotes;
+  const r = (paper.analysis?.relevanceScore ?? 0) / 10;
+  const c = category
+    ? (paper.analysis?.categoryScores?.[category] ?? 0) / 10
+    : 0.5;
+  return weights.w_upvotes * u + weights.w_relevance * r + weights.w_category * c;
+}
+
+function isHiddenGem(paper: PaperWithAnalysis): boolean {
+  if (!paper.analysis?.categoryScores) return false;
+  const maxCatScore = Math.max(...Object.values(paper.analysis.categoryScores), 0);
+  return maxCatScore >= 9 && (paper.upvotes ?? 0) < 20;
+}
+
+function getCategoryFromUrl(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('category');
+}
+
+function setCategoryInUrl(categoryId: string | null): void {
+  const params = new URLSearchParams(window.location.search);
+  if (categoryId) {
+    params.set('category', categoryId);
+  } else {
+    params.delete('category');
   }
-  return normalized;
+  const newUrl = params.toString()
+    ? `${window.location.pathname}?${params}`
+    : window.location.pathname;
+  window.history.pushState({}, '', newUrl);
 }
 
 const App: React.FC = () => {
-  const [papers, setPapers] = useState<ArxivPaper[]>([]);
-  const [analyses, setAnalyses] = useState<Record<string, PaperAnalysis>>({});
+  const [papers, setPapers] = useState<PaperWithAnalysis[]>([]);
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const [scoring, setScoring] = useState<ScoringWeights>({ w_upvotes: 0.3, w_relevance: 0.3, w_category: 0.4 });
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(getCategoryFromUrl);
   const [loadingPapers, setLoadingPapers] = useState(true);
-  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Load categories on mount
   useEffect(() => {
-    setAnalyses(getCachedAnalyses(ANALYSIS_CACHE_KEY));
+    fetchCategories()
+      .then(({ categories: cats, scoring: sc }) => {
+        setCategories(cats);
+        setScoring(sc);
+      })
+      .catch(err => console.warn('Failed to load categories:', err));
   }, []);
 
   const loadData = useCallback(async (forceRefresh: boolean = false) => {
@@ -40,74 +78,73 @@ const App: React.FC = () => {
       setLoadingPapers(true);
       setError(null);
 
-      let papersToUse: ArxivPaper[] = [];
+      let papersToUse: PaperWithAnalysis[] = [];
       if (!forceRefresh) {
-        const cached = getCachedPapers(10, PAPER_CACHE_MAX_AGE_MS);
+        const cached = getCachedPapers(PAPER_CACHE_MAX_AGE_MS);
         if (!cached.isStale && cached.papers.length > 0) {
           papersToUse = cached.papers;
         }
       }
 
       if (papersToUse.length === 0) {
-        const fetchedRaw = await fetchLatestAIPapers(10, forceRefresh);
-
-        // Extract analyses embedded by the backend (from analyze_papers_result.json)
-        const embeddedAnalyses: Record<string, PaperAnalysis> = {};
-        const cleanPapers: ArxivPaper[] = (fetchedRaw as Array<ArxivPaper & { analysis?: PaperAnalysis }>).map((p) => {
-          if (p.analysis && typeof p.analysis === 'object') {
-            embeddedAnalyses[p.id] = p.analysis;
-          }
-          const { analysis: _analysis, ...rest } = p;
-          return rest as ArxivPaper;
-        });
-
-        papersToUse = cleanPapers;
-        setCachedPapers(cleanPapers);
-        if (Object.keys(embeddedAnalyses).length > 0) {
-          mergeCachedAnalyses(ANALYSIS_CACHE_KEY, embeddedAnalyses);
-        }
-        console.log('Fetched papers:', cleanPapers.map(p => ({ title: p.title, upvotes: p.upvotes })));
+        const { papers: fetched } = await fetchLatestAIPapers(forceRefresh);
+        papersToUse = fetched;
+        setCachedPapers(fetched);
       }
 
       setPapers(papersToUse);
-      setLoadingPapers(false);
-
-      if (papersToUse.length === 0) return;
-
-      const cached = getCachedAnalyses(ANALYSIS_CACHE_KEY);
-      setAnalyses(cached);
-
-      const missingPapers = papersToUse.filter((p) => !cached[p.id]);
-      if (missingPapers.length === 0) return;
-
-      setLoadingAnalysis(true);
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ papers: missingPapers }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json() as { error?: string };
-        throw new Error(errData.error || '论文分析失败');
-      }
-
-      const results = await response.json() as Record<string, PaperAnalysis>;
-      const normalized = normalizeAnalysesByPaperId(missingPapers, results);
-      setAnalyses((prev) => ({ ...prev, ...normalized }));
-      mergeCachedAnalyses(ANALYSIS_CACHE_KEY, normalized);
-      setLoadingAnalysis(false);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
+    } finally {
       setLoadingPapers(false);
-      setLoadingAnalysis(false);
     }
   }, []);
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync URL on category change
+  const handleCategorySelect = (categoryId: string | null) => {
+    setSelectedCategory(categoryId);
+    setCategoryInUrl(categoryId);
+  };
+
+  // Browser back/forward support
+  useEffect(() => {
+    const onPopState = () => setSelectedCategory(getCategoryFromUrl());
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  // Compute displayed papers
+  const displayedPapers = (() => {
+    if (selectedCategory === null) {
+      // All: sort by finalScore descending, show all
+      return [...papers].sort((a, b) =>
+        computeFinalScore(b, null, papers, scoring) -
+        computeFinalScore(a, null, papers, scoring)
+      );
+    }
+    // Category view: filter by category, sort by score, take Top N
+    const filtered = papers.filter(p =>
+      p.analysis?.categories?.includes(selectedCategory)
+    );
+    return filtered
+      .sort((a, b) =>
+        computeFinalScore(b, selectedCategory, papers, scoring) -
+        computeFinalScore(a, selectedCategory, papers, scoring)
+      )
+      .slice(0, TOP_N);
+  })();
+
+  const selectedCategoryLabel = selectedCategory
+    ? categories.find(c => c.id === selectedCategory)?.label ?? selectedCategory
+    : null;
+
+  const categoryPaperCount = selectedCategory
+    ? papers.filter(p => p.analysis?.categories?.includes(selectedCategory)).length
+    : papers.length;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -131,10 +168,10 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => loadData(true)}
-              disabled={loadingPapers || loadingAnalysis}
+              disabled={loadingPapers}
               className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition-all flex items-center gap-2"
             >
-              {(loadingPapers || loadingAnalysis) ? (
+              {loadingPapers ? (
                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -144,11 +181,20 @@ const App: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               )}
-              {loadingPapers ? '获取中...' : loadingAnalysis ? '分析中...' : '刷新'}
+              {loadingPapers ? '获取中...' : '刷新'}
             </button>
           </div>
         </div>
       </header>
+
+      {/* Category Filter */}
+      {!loadingPapers && categories.length > 0 && (
+        <CategoryFilter
+          categories={categories}
+          selected={selectedCategory}
+          onSelect={handleCategorySelect}
+        />
+      )}
 
       {/* Main Content */}
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
@@ -178,10 +224,22 @@ const App: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800">Latest Discoveries</h2>
-                <p className="text-slate-500 mt-1">Found {papers.length} groundbreaking papers from today's releases.</p>
+                <h2 className="text-2xl font-bold text-slate-800">
+                  {selectedCategoryLabel ? selectedCategoryLabel : 'Latest Discoveries'}
+                </h2>
+                {selectedCategory ? (
+                  displayedPapers.length > 0 ? (
+                    <p className="text-slate-500 mt-1">
+                      Top {displayedPapers.length} / 共 {categoryPaperCount} 篇 · {selectedCategoryLabel}
+                    </p>
+                  ) : (
+                    <p className="text-slate-500 mt-1">今日暂无「{selectedCategoryLabel}」的论文，试试其他类别？</p>
+                  )
+                ) : (
+                  <p className="text-slate-500 mt-1">Found {papers.length} groundbreaking papers from today's releases.</p>
+                )}
               </div>
               <div className="flex gap-2">
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-100">
@@ -189,32 +247,25 @@ const App: React.FC = () => {
                   Live Feed
                 </div>
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-100">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M11.3 1.047a1 1 0 01.897.95l.141 2.655 2.503-.835a1 1 0 011.233.565l1.023 2.193a1 1 0 01-.3 1.258l-2.14 1.583 1.413 2.298a1 1 0 01-.15 1.3l-2.19 1.954 1.135 2.454a1 1 0 01-.58 1.282l-2.192.836-.142 2.654a1 1 0 01-1 1H8.718a1 1 0 01-.999-.949l-.142-2.654-2.192-.836a1 1 0 01-.58-1.282l1.135-2.454-2.19-1.954a1 1 0 01-.15-1.3l1.413-2.298-2.14-1.583a1 1 0 01-.3-1.258l1.023-2.193a1 1 0 011.233-.565l2.503.835.141-2.655a1 1 0 01.999-.95h2.583z" clipRule="evenodd" />
-                  </svg>
                   GPT-4o Enhanced
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {papers.map((paper) => (
-                <PaperCard
-                  key={paper.id}
-                  paper={paper}
-                  analysis={analyses[paper.id]}
-                  isLoadingAnalysis={loadingAnalysis && !analyses[paper.id]}
-                />
-              ))}
-            </div>
-
-            {papers.length === 0 && !loadingPapers && (
+            {displayedPapers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedPapers.map((paper, index) => (
+                  <PaperCard
+                    key={paper.id}
+                    paper={paper}
+                    analysis={paper.analysis}
+                    rank={selectedCategory && index < 3 ? index + 1 : undefined}
+                    isHiddenGem={isHiddenGem(paper)}
+                  />
+                ))}
+              </div>
+            ) : !selectedCategory && (
               <div className="text-center py-20">
-                <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
                 <h3 className="text-lg font-bold text-slate-700">No papers found</h3>
                 <p className="text-slate-500">Try refreshing the feed in a few minutes.</p>
               </div>
