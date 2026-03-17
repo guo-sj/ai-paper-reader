@@ -344,7 +344,7 @@ function computeFinalScore(
     allPapers: AnalyzedPaper[],
     weights: { w_upvotes: number; w_relevance: number; w_category: number }
 ): number {
-    const maxUpvotes = Math.max(...allPapers.map(p => p.upvotes ?? 0), 1);
+    const maxUpvotes = Math.max(1, allPapers.reduce((m, p) => Math.max(m, p.upvotes ?? 0), 0));
     const u = Math.min(paper.upvotes ?? 0, maxUpvotes) / maxUpvotes;
     const r = (paper.analysis?.relevanceScore ?? 0) / 10;
     const c = category
@@ -746,10 +746,10 @@ app.get('/api/papers', async (req, res) => {
         const papers = result.papers;
 
         // Sort by finalScore (All view: category dimension = 0.5)
-        const sorted = [...papers].sort((a, b) =>
-            computeFinalScore(b, undefined, papers, config.scoring) -
-            computeFinalScore(a, undefined, papers, config.scoring)
-        );
+        // Pre-compute scores to avoid recalculating during sort
+        const scored = papers.map(p => ({ paper: p, score: computeFinalScore(p, undefined, papers, config.scoring) }));
+        scored.sort((a, b) => b.score - a.score);
+        const sorted = scored.map(x => x.paper);
 
         return res.json({ papers: sorted, totalCount: sorted.length });
     } catch (error: any) {
