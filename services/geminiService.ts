@@ -26,17 +26,23 @@ function resolveModelId(modelId?: string): string {
 async function analyzeBatch(
   ai: GoogleGenAI,
   batch: ArxivPaper[],
-  modelId: string
+  modelId: string,
+  categoryIds: string[]
 ): Promise<Record<string, PaperAnalysis>> {
+  const categoryList = categoryIds.join(', ');
   const prompt = `
     请分析以下来自 arXiv 的最新 AI 研究论文。
     请务必使用 **中文** 提供 JSON 格式的结构化分析。
-    
+
     分析重点包括：
     1. 核心方法论的简洁摘要（geminiSummary）。
     2. 与之前工作相比的关键创新点（keyInnovation）。
     3. 对 AI 领域的长期潜在影响（potentialImpact）。
     4. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
+    5. 从以下预定义类别中，选出该论文最相关的 1-3 个类别，并给出每个类别的相关度评分（1-10）。
+       可选类别 ID：[${categoryList}]
+       返回：categories（选中类别 ID 的字符串数组）、categoryScores（对象，key 为类别 ID，value 为 1-10 评分）。
+       不相关的类别不需要出现在 categoryScores 中。
 
     待分析论文：
     ${batch.map((p) => `
@@ -61,9 +67,11 @@ async function analyzeBatch(
             geminiSummary: { type: Type.STRING, description: "Concise summary." },
             keyInnovation: { type: Type.STRING, description: "What's new here?" },
             potentialImpact: { type: Type.STRING, description: "Why it matters." },
-            relevanceScore: { type: Type.NUMBER, description: "Score from 1 to 10." }
+            relevanceScore: { type: Type.NUMBER, description: "Score from 1 to 10." },
+            categories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Selected category IDs (1-3)." },
+            categoryScores: { type: Type.OBJECT, description: "Map of category ID to relevance score (1-10)." }
           },
-          required: ["paperId", "geminiSummary", "keyInnovation", "potentialImpact", "relevanceScore"]
+          required: ["paperId", "geminiSummary", "keyInnovation", "potentialImpact", "relevanceScore", "categories", "categoryScores"]
         }
       }
     }
@@ -76,7 +84,17 @@ async function analyzeBatch(
   const record: Record<string, PaperAnalysis> = {};
   analysesArray.forEach((analysis) => {
     if (analysis && analysis.paperId) {
-      record[analysis.paperId] = analysis;
+      record[analysis.paperId] = {
+        paperId: analysis.paperId,
+        geminiSummary: String(analysis.geminiSummary ?? ''),
+        keyInnovation: String(analysis.keyInnovation ?? ''),
+        potentialImpact: String(analysis.potentialImpact ?? ''),
+        relevanceScore: Number(analysis.relevanceScore) || 0,
+        categories: Array.isArray(analysis.categories) ? analysis.categories : [],
+        categoryScores: (analysis.categoryScores && typeof analysis.categoryScores === 'object' && !Array.isArray(analysis.categoryScores))
+          ? Object.fromEntries(Object.entries(analysis.categoryScores).map(([k, v]) => [k, Number(v) || 0]))
+          : {},
+      };
     }
   });
   return record;
@@ -100,7 +118,8 @@ function chunk<T>(arr: T[], size: number): T[][] {
  */
 export const analyzePapers = async (
   papers: ArxivPaper[],
-  modelId?: string
+  modelId?: string,
+  categoryIds: string[] = []
 ): Promise<Record<string, PaperAnalysis>> => {
   if (papers.length === 0) return {};
 
@@ -116,7 +135,7 @@ export const analyzePapers = async (
 
   for (let i = 0; i < batches.length; i++) {
     try {
-      const batchResult = await analyzeBatch(ai, batches[i], model);
+      const batchResult = await analyzeBatch(ai, batches[i], model, categoryIds);
       Object.assign(merged, batchResult);
     } catch (error) {
       console.error(`GeminiService batch ${i + 1}/${batches.length} failed:`, error);

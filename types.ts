@@ -91,6 +91,19 @@ export interface PaperAnalysis {
   keyInnovation: string;
   potentialImpact: string;
   relevanceScore: number; // 1-10
+  categories: string[];                    // e.g. ["attention", "llm"]
+  categoryScores: Record<string, number>;  // e.g. {"attention": 9, "llm": 6}
+}
+
+/** ArxivPaper with optional embedded analysis (as returned by /api/papers). */
+export interface PaperWithAnalysis extends ArxivPaper {
+  analysis?: PaperAnalysis;
+}
+
+/** Category definition (id + display label). */
+export interface CategoryInfo {
+  id: string;
+  label: string;
 }
 
 export interface AppState {
