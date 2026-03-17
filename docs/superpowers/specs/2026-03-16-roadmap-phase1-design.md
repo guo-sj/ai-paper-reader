@@ -62,7 +62,7 @@
 }
 ```
 
-权重字段 `scoring` 支持在不重新部署的情况下调优排序。
+权重字段 `scoring` 由 `server.ts` 在**每次** `/api/papers` 请求时从文件读取（不在进程启动时缓存），从而支持运行时调优无需重启服务。`categories` 字段同理（每次 `/api/categories` 请求时重新读取文件）。
 
 ### 1.2 `types.ts` 扩展
 
@@ -102,7 +102,43 @@ export interface PaperAnalysis {
    不相关的类别不需要出现在 categoryScores 中。
 ```
 
-4. 已分析并缓存的论文不重新分析（刷新时跳过），避免 AI 分类结果漂移。
+   **OpenAI response_format 处理**：当前 `analyzeService.ts` 使用 `response_format: { type: 'json_object' }`，模型返回顶层对象，再通过 `Object.values(parsed).find(Array.isArray)` 提取数组。新增字段后，解析逻辑不变，但需确认 prompt 的示例输出也同步包含 `categories` 和 `categoryScores` 字段，让模型正确理解输出格式：
+
+```json
+[
+  {
+    "paperId": "...",
+    "geminiSummary": "...",
+    "keyInnovation": "...",
+    "potentialImpact": "...",
+    "relevanceScore": 8,
+    "categories": ["attention", "llm"],
+    "categoryScores": { "attention": 9, "llm": 6 }
+  }
+]
+```
+
+4. **已分析论文跳过逻辑**：避免 AI 分类结果在刷新时漂移。伪代码：
+
+```
+fetchAndAnalyzePapers():
+  todayPapers = fetchFromHuggingFace()          // 获取今日全量论文
+  cached = readAnalyzedPapersCache()            // 读取 analyze_papers_result.json
+  alreadyAnalyzed = Set(cached.map(p => p.id)) // 已分析的论文 ID 集合
+
+  toAnalyze = todayPapers.filter(p => !alreadyAnalyzed.has(p.id))
+  // 仍然更新 upvotes：用今日最新 upvotes 覆盖缓存中同 ID 论文的 upvotes 字段
+  // 但 categories / categoryScores / geminiSummary 等 AI 分析字段不重新生成
+
+  if toAnalyze.length > 0:
+    newAnalyses = analyzeWithOpenAI(toAnalyze)
+    merged = merge(cached, newAnalyses)         // 以 paperId 为 key 合并
+    writeAnalyzedPapersCache(merged)
+
+  return readAnalyzedPapersCache()
+```
+
+> **注意**：仅今日日期的缓存被视为有效。若缓存日期不是今天（服务跨日重启场景），则全量重新分析。
 
 ### 2.2 排序函数（`server.ts` 新增）
 
@@ -160,10 +196,15 @@ function computeFinalScore(
 
 #### 新增 `GET /api/categories`
 
-返回 `categories.json` 中的类别列表（不含 aliases，前端只需 id + label）：
+返回 `categories.json` 中的类别列表及排序权重（前端 `computeFinalScore` 需要权重）：
 
 ```json
 {
+  "scoring": {
+    "w_upvotes": 0.3,
+    "w_relevance": 0.3,
+    "w_category": 0.4
+  },
   "categories": [
     { "id": "attention", "label": "Attention / Transformer" },
     { "id": "moe",       "label": "MoE (Mixture of Experts)" },
@@ -179,7 +220,10 @@ function computeFinalScore(
 ### 3.1 数据获取层
 
 - `huggingFaceService.ts`：`fetchLatestAIPapers` 适配新响应结构，返回 `{ papers, totalCount }`
-- `App.tsx`：一次性加载全量论文存入 state，同时调用 `GET /api/categories` 获取类别列表
+- `App.tsx`：
+  - 一次性调用 `GET /api/papers`，响应中每篇论文对象自带 `analysis` 字段，无需分离提取
+  - 同时调用 `GET /api/categories` 获取类别列表和权重（`scoring`）
+  - **`analysis` 字段处理**：当前 `App.tsx` 会将 `analysis` 从 paper 对象中剥离并单独缓存。新方案中 `analysis` 作为 paper 对象的内嵌字段保留，统一存入同一缓存键，不再分离。`services/papersCache.ts` 和 `services/analysisCache.ts` 相应简化（papersCache 存完整带 analysis 的 paper 对象；analysisCache 可废弃或保留用于 localStorage 结构版本升级）
 - 类别切换不发请求，纯前端过滤 + 排序
 
 ### 3.2 新增 `CategoryFilter.tsx`
@@ -194,7 +238,7 @@ function computeFinalScore(
 - 标签列表 = `["All", ...categories.json 所有类别]`（固定顺序，全部显示，含今日无论文的类别）
 - 默认选中 "All"
 - 选中标签高亮
-- URL 同步：`?category=attention`，支持分享链接和浏览器后退
+- URL 同步：`?category=attention`，使用 `window.history.pushState` + `window.location.search`（原生 URLSearchParams），不引入 react-router-dom
 
 ### 3.3 前端筛选与排序逻辑（`App.tsx`）
 
@@ -230,10 +274,13 @@ function computeFinalScore(
 |------|------|------|
 | `server/categories.json` | 新增 | 类别配置 + 排序权重 |
 | `types.ts` | 修改 | PaperAnalysis 新增 categories、categoryScores |
-| `server/analyzeService.ts` | 修改 | 删除重复类型定义；扩展 prompt；提升 max_tokens；去掉数量截断 |
-| `server/server.ts` | 修改 | 新增 /api/categories；修改 /api/papers 响应格式；新增 computeFinalScore |
+| `server/analyzeService.ts` | 修改 | 删除重复类型定义；扩展 prompt（含示例输出）；提升 max_tokens；去掉数量截断；新增跳过已分析论文逻辑 |
+| `server/analyzedPapersCacheFile.ts` | 修改 | import PaperAnalysis 从 `../types` 而非 `./analyzeService` |
+| `server/server.ts` | 修改 | 新增 /api/categories；修改 /api/papers 响应格式；新增 computeFinalScore；每次请求重新读取 categories.json |
 | `services/huggingFaceService.ts` | 修改 | 适配新响应结构 |
-| `App.tsx` | 修改 | 加载类别列表；集成 CategoryFilter；前端过滤排序逻辑；缓存版本升级 |
+| `services/papersCache.ts` | 修改 | 存储带 analysis 的完整 paper 对象；新增 CACHE_VERSION v2 校验 |
+| `services/analysisCache.ts` | 修改 | 废弃或简化（analysis 已内嵌在 paper 对象中） |
+| `App.tsx` | 修改 | 加载类别列表+权重；集成 CategoryFilter；前端过滤排序逻辑；不再分离 analysis 字段 |
 | `components/CategoryFilter.tsx` | 新增 | 水平标签栏组件 |
 | `components/PaperCard.tsx` | 修改 | 多类别标签；排名角标；Hidden Gem 标记 |
 
