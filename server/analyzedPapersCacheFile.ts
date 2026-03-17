@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { CachedPaper } from './papersCacheFile.js';
-import { PaperAnalysis } from './analyzeService.js';
+import { PaperAnalysis } from '../types.js';
 
 export interface AnalyzedPaper extends CachedPaper {
   analysis?: PaperAnalysis;
