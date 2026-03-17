@@ -16,20 +16,6 @@ interface ScoringWeights {
   w_category: number;
 }
 
-function computeFinalScore(
-  paper: PaperWithAnalysis,
-  category: string | null,
-  allPapers: PaperWithAnalysis[],
-  weights: ScoringWeights
-): number {
-  const maxUpvotes = Math.max(1, allPapers.reduce((m, p) => Math.max(m, p.upvotes ?? 0), 0));
-  const u = Math.min(paper.upvotes ?? 0, maxUpvotes) / maxUpvotes;
-  const r = (paper.analysis?.relevanceScore ?? 0) / 10;
-  const c = category
-    ? (paper.analysis?.categoryScores?.[category] ?? 0) / 10
-    : 0.5;
-  return weights.w_upvotes * u + weights.w_relevance * r + weights.w_category * c;
-}
 
 function isHiddenGem(paper: PaperWithAnalysis): boolean {
   if (!paper.analysis?.categoryScores) return false;
@@ -191,7 +177,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Category Filter */}
-      {!loadingPapers && categories.length > 0 && (
+      {categories.length > 0 && (
         <CategoryFilter
           categories={categories}
           selected={selectedCategory}
