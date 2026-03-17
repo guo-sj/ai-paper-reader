@@ -1,23 +1,24 @@
-import { ArxivPaper } from '../types';
+import { PaperWithAnalysis } from '../types';
 import { readJsonCacheWithTtl, writeJsonCacheWithTimestamp, removeJsonCache, DEFAULT_CACHE_TTL_MS } from './cacheStore';
 
-const CACHE_STORAGE_KEY = 'ai-insight:cache:papers';
+export const CACHE_VERSION = 'v2';
+const CACHE_STORAGE_KEY = `ai-insight:cache:papers:${CACHE_VERSION}`;
 
 interface PapersCache {
-  papers: ArxivPaper[];
+  papers: PaperWithAnalysis[];
 }
 
 export function getCachedPapers(
-  limit: number,
   maxAgeMs: number = DEFAULT_CACHE_TTL_MS
-): { papers: ArxivPaper[]; isStale: boolean } {
+): { papers: PaperWithAnalysis[]; isStale: boolean } {
   const { value, isStale } = readJsonCacheWithTtl<PapersCache>(CACHE_STORAGE_KEY, maxAgeMs);
-  if (!value) return { papers: [], isStale };
-  return { papers: value.papers.slice(0, limit), isStale };
+  if (!value) return { papers: [], isStale: true };
+  return { papers: value.papers, isStale };
 }
 
-export function setCachedPapers(papers: ArxivPaper[]): void {
-  writeJsonCacheWithTimestamp(CACHE_STORAGE_KEY, {
+export function setCachedPapers(papers: PaperWithAnalysis[]): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  writeJsonCacheWithTimestamp<any>(CACHE_STORAGE_KEY, {
     papers: Array.isArray(papers) ? papers : [],
   });
 }
