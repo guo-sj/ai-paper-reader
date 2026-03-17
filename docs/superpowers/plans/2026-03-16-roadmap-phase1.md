@@ -19,7 +19,7 @@
 | File | Action | Responsibility |
 |------|--------|----------------|
 | `server/categories.json` | Create | Category definitions + scoring weights |
-| `types.ts` | Modify | Add `categories`, `categoryScores` to `PaperAnalysis` |
+| `types.ts` | Modify | Add `categories`, `categoryScores` to `PaperAnalysis`; add `PaperWithAnalysis`, `CategoryInfo` shared types |
 | `server/analyzedPapersCacheFile.ts` | Modify | Fix import: PaperAnalysis from `../types` |
 | `server/analyzeService.ts` | Modify | Remove duplicate type; extend prompt; raise max_tokens; skip already-analyzed |
 | `server/server.ts` | Modify | Add `/api/categories`; update `/api/papers` response; add `computeFinalScore`; skip-analyzed logic |
@@ -80,25 +80,15 @@ git commit -m "feat: add categories config with scoring weights"
 
 ---
 
-## Task 2: Extend `types.ts` — add category fields to PaperAnalysis
+## Task 2: Extend `types.ts` — add category fields and shared types
 
 **Files:**
-- Modify: `types.ts:88-94`
+- Modify: `types.ts:88-101`
 
-Current `PaperAnalysis` (lines 88-94):
-```typescript
-export interface PaperAnalysis {
-  paperId: string;
-  geminiSummary: string;
-  keyInnovation: string;
-  potentialImpact: string;
-  relevanceScore: number; // 1-10
-}
-```
+- [ ] **Step 1: Extend `PaperAnalysis` and add shared types**
 
-- [ ] **Step 1: Add the two new fields**
+Replace the existing `PaperAnalysis` interface and `AppState` (lines 88-101) with:
 
-Replace the interface with:
 ```typescript
 export interface PaperAnalysis {
   paperId: string;
@@ -109,7 +99,27 @@ export interface PaperAnalysis {
   categories: string[];                    // e.g. ["attention", "llm"]
   categoryScores: Record<string, number>;  // e.g. {"attention": 9, "llm": 6}
 }
+
+/** ArxivPaper with optional embedded analysis (as returned by /api/papers). */
+export interface PaperWithAnalysis extends ArxivPaper {
+  analysis?: PaperAnalysis;
+}
+
+/** Category definition (id + display label). */
+export interface CategoryInfo {
+  id: string;
+  label: string;
+}
+
+export interface AppState {
+  papers: ArxivPaper[];
+  analyses: Record<string, PaperAnalysis>;
+  isLoading: boolean;
+  error: string | null;
+}
 ```
+
+> **Note:** `PaperWithAnalysis` and `CategoryInfo` are defined here once as the single source of truth. `huggingFaceService.ts`, `papersCache.ts`, and `CategoryFilter.tsx` must all import them from `../types` (or `./types`), NOT redefine them locally.
 
 - [ ] **Step 2: Verify TypeScript compiles**
 
@@ -117,13 +127,13 @@ export interface PaperAnalysis {
 npx tsc --noEmit
 ```
 
-Expected: errors only in `server/analyzeService.ts` (duplicate interface — fixed in Task 3). No other errors.
+Expected: errors in `server/analyzeService.ts` (duplicate interface — fixed in Task 4). No other errors.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add types.ts
-git commit -m "feat: add categories and categoryScores fields to PaperAnalysis type"
+git commit -m "feat: add categories/categoryScores to PaperAnalysis; add PaperWithAnalysis and CategoryInfo shared types"
 ```
 
 ---
@@ -539,6 +549,22 @@ app.get('/api/categories', async (_req, res) => {
 });
 ```
 
+- [ ] **Step 5: Also update `POST /api/analyze` call site to pass `categoryIds`**
+
+The existing `/api/analyze` route (around line 681-699) calls `analyzeWithOpenAI(papers, apiKey)` with 2 args. After Task 4, the signature requires an optional 3rd `categoryIds` arg. Update that call to pass categories so on-demand analysis also produces classification data:
+
+Find this line in `server.ts`:
+```typescript
+const result = await analyzeWithOpenAI(papers, apiKey);
+```
+
+Replace with:
+```typescript
+const config = await readCategoriesConfig();
+const categoryIds = config.categories.map((c: { id: string }) => c.id);
+const result = await analyzeWithOpenAI(papers, apiKey, categoryIds);
+```
+
 - [ ] **Step 6: Verify server starts without errors**
 
 ```bash
@@ -581,16 +607,9 @@ git commit -m "feat: add /api/categories, update /api/papers response format, ad
 Replace the entire file:
 
 ```typescript
-import { ArxivPaper, PaperAnalysis } from '../types';
+import { PaperWithAnalysis, CategoryInfo } from '../types';
 
-export interface PaperWithAnalysis extends ArxivPaper {
-  analysis?: PaperAnalysis;
-}
-
-export interface CategoryInfo {
-  id: string;
-  label: string;
-}
+export type { PaperWithAnalysis, CategoryInfo };
 
 export interface CategoriesResponse {
   scoring: { w_upvotes: number; w_relevance: number; w_category: number };
@@ -624,15 +643,11 @@ export const fetchCategories = async (): Promise<CategoriesResponse> => {
 Replace the entire file with a v2 cache that stores full papers with embedded analysis:
 
 ```typescript
-import { PaperAnalysis, ArxivPaper } from '../types';
+import { PaperWithAnalysis } from '../types';
 import { readJsonCacheWithTtl, writeJsonCacheWithTimestamp, removeJsonCache, DEFAULT_CACHE_TTL_MS } from './cacheStore';
 
 export const CACHE_VERSION = 'v2';
 const CACHE_STORAGE_KEY = `ai-insight:cache:papers:${CACHE_VERSION}`;
-
-export interface PaperWithAnalysis extends ArxivPaper {
-  analysis?: PaperAnalysis;
-}
 
 interface PapersCache {
   papers: PaperWithAnalysis[];
@@ -642,6 +657,7 @@ export function getCachedPapers(
   maxAgeMs: number = DEFAULT_CACHE_TTL_MS
 ): { papers: PaperWithAnalysis[]; isStale: boolean } {
   const { value, isStale } = readJsonCacheWithTtl<PapersCache>(CACHE_STORAGE_KEY, maxAgeMs);
+  // When value is null (no cache entry), isStale is forced true — this is intentional.
   if (!value) return { papers: [], isStale: true };
   return { papers: value.papers, isStale };
 }
@@ -685,11 +701,7 @@ git commit -m "feat: update data layer — new papers response format, v2 cache 
 
 ```tsx
 import React, { useRef } from 'react';
-
-export interface CategoryInfo {
-  id: string;
-  label: string;
-}
+import { CategoryInfo } from '../types';
 
 interface CategoryFilterProps {
   categories: CategoryInfo[];
@@ -752,9 +764,10 @@ This is the most significant change. Replace the entire file:
 
 ```tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchLatestAIPapers, fetchCategories, PaperWithAnalysis, CategoryInfo } from './services/huggingFaceService';
+import { fetchLatestAIPapers, fetchCategories, PapersResponse, CategoriesResponse } from './services/huggingFaceService';
 import { getCachedPapers, setCachedPapers } from './services/papersCache';
 import { DEFAULT_CACHE_TTL_MS } from './services/cacheStore';
+import { PaperWithAnalysis, CategoryInfo } from './types';
 import PaperCard from './components/PaperCard';
 import CategoryFilter from './components/CategoryFilter';
 import SubscriptionForm from './components/SubscriptionForm';
