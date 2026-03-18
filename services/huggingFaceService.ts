@@ -15,7 +15,7 @@ export interface PapersResponse {
 export const fetchLatestAIPapers = async (refresh: boolean = false): Promise<PapersResponse> => {
   const params = new URLSearchParams();
   if (refresh) params.set('refresh', 'true');
-  const response = await fetch(`/api/papers?${params}`);
+  const response = await fetch(`/api/papers?${params}`, { cache: 'no-store' });
   if (!response.ok) throw new Error('Failed to fetch from backend API');
   return (await response.json()) as PapersResponse;
 };
