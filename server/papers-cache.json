@@ -1,31 +1,7 @@
 {
   "version": 1,
-  "dateKey": "2026-03-17",
+  "dateKey": "2026-03-18",
   "papers": [
-    {
-      "id": "2603.15583",
-      "title": "Grounding World Simulation Models in a Real-World Metropolis",
-      "summary": "What if a world simulation model could render not an imagined environment but a city that actually exists? Prior generative world models synthesize visually plausible yet artificial environments by imagining all content. We present Seoul World Model (SWM), a city-scale world model grounded in the real city of Seoul. SWM anchors autoregressive video generation through retrieval-augmented conditioning on nearby street-view images. However, this design introduces several challenges, including temporal misalignment between retrieved references and the dynamic target scene, limited trajectory diversity and data sparsity from vehicle-mounted captures at sparse intervals. We address these challenges through cross-temporal pairing, a large-scale synthetic dataset enabling diverse camera trajectories, and a view interpolation pipeline that synthesizes coherent training videos from sparse street-view images. We further introduce a Virtual Lookahead Sink to stabilize long-horizon generation by continuously re-grounding each chunk to a retrieved image at a future location. We evaluate SWM against recent video world models across three cities: Seoul, Busan, and Ann Arbor. SWM outperforms existing methods in generating spatially faithful, temporally consistent, long-horizon videos grounded in actual urban environments over trajectories reaching hundreds of meters, while supporting diverse camera movements and text-prompted scenario variations.",
-      "authors": [
-        "Junyoung Seo",
-        "Hyunwook Choi",
-        "Minkyung Kwon",
-        "Jinhyeok Choi",
-        "Siyoon Jin",
-        "Gayoung Lee",
-        "Junho Kim",
-        "JoungBin Lee",
-        "Geonmo Gu",
-        "Dongyoon Han",
-        "Sangdoo Yun",
-        "Seungryong Kim",
-        "Jin-Hwa Kim"
-      ],
-      "published": "2026-03-16T17:46:04.000Z",
-      "link": "https://huggingface.co/papers/2603.15583",
-      "category": "AI",
-      "upvotes": 56
-    },
     {
       "id": "2603.14473",
       "title": "AI Can Learn Scientific Taste",
@@ -58,7 +34,7 @@
       "published": "2026-03-15T16:31:51.000Z",
       "link": "https://huggingface.co/papers/2603.14473",
       "category": "AI",
-      "upvotes": 54
+      "upvotes": 216
     },
     {
       "id": "2603.15594",
@@ -76,7 +52,51 @@
       "published": "2026-03-16T17:52:04.000Z",
       "link": "https://huggingface.co/papers/2603.15594",
       "category": "AI",
-      "upvotes": 49
+      "upvotes": 125
+    },
+    {
+      "id": "2603.13594",
+      "title": "EnterpriseOps-Gym: Environments and Evaluations for Stateful Agentic Planning and Tool Use in Enterprise Settings",
+      "summary": "Large language models are shifting from passive information providers to active agents intended for complex workflows. However, their deployment as reliable AI workers in enterprise is stalled by benchmarks that fail to capture the intricacies of professional environments, specifically, the need for long-horizon planning amidst persistent state changes and strict access protocols. In this work, we introduce EnterpriseOps-Gym, a benchmark designed to evaluate agentic planning in realistic enterprise settings. Specifically, EnterpriseOps-Gym features a containerized sandbox with 164 database tables and 512 functional tools to mimic real-world search friction. Within this environment, agents are evaluated on 1,150 expert-curated tasks across eight mission-critical verticals (including Customer Service, HR, and IT). Our evaluation of 14 frontier models reveals critical limitations in state-of-the-art models: the top-performing Claude Opus 4.5 achieves only 37.4% success. Further analysis shows that providing oracle human plans improves performance by 14-35 percentage points, pinpointing strategic reasoning as the primary bottleneck. Additionally, agents frequently fail to refuse infeasible tasks (best model achieves 53.9%), leading to unintended and potentially harmful side effects. Our findings underscore that current agents are not yet ready for autonomous enterprise deployment. More broadly, EnterpriseOps-Gym provides a concrete testbed to advance the robustness of agentic planning in professional workflows.",
+      "authors": [
+        "Shiva Krishna Reddy Malay",
+        "Shravan Nayak",
+        "Jishnu Sethumadhavan Nair",
+        "Sagar Davasam",
+        "Aman Tiwari",
+        "Sathwik Tejaswi Madhusudhan",
+        "Sridhar Krishna Nemala",
+        "Srinivas Sunkara",
+        "Sai Rajeswar"
+      ],
+      "published": "2026-03-13T21:09:39.000Z",
+      "link": "https://huggingface.co/papers/2603.13594",
+      "category": "AI",
+      "upvotes": 117
+    },
+    {
+      "id": "2603.15583",
+      "title": "Grounding World Simulation Models in a Real-World Metropolis",
+      "summary": "What if a world simulation model could render not an imagined environment but a city that actually exists? Prior generative world models synthesize visually plausible yet artificial environments by imagining all content. We present Seoul World Model (SWM), a city-scale world model grounded in the real city of Seoul. SWM anchors autoregressive video generation through retrieval-augmented conditioning on nearby street-view images. However, this design introduces several challenges, including temporal misalignment between retrieved references and the dynamic target scene, limited trajectory diversity and data sparsity from vehicle-mounted captures at sparse intervals. We address these challenges through cross-temporal pairing, a large-scale synthetic dataset enabling diverse camera trajectories, and a view interpolation pipeline that synthesizes coherent training videos from sparse street-view images. We further introduce a Virtual Lookahead Sink to stabilize long-horizon generation by continuously re-grounding each chunk to a retrieved image at a future location. We evaluate SWM against recent video world models across three cities: Seoul, Busan, and Ann Arbor. SWM outperforms existing methods in generating spatially faithful, temporally consistent, long-horizon videos grounded in actual urban environments over trajectories reaching hundreds of meters, while supporting diverse camera movements and text-prompted scenario variations.",
+      "authors": [
+        "Junyoung Seo",
+        "Hyunwook Choi",
+        "Minkyung Kwon",
+        "Jinhyeok Choi",
+        "Siyoon Jin",
+        "Gayoung Lee",
+        "Junho Kim",
+        "JoungBin Lee",
+        "Geonmo Gu",
+        "Dongyoon Han",
+        "Sangdoo Yun",
+        "Seungryong Kim",
+        "Jin-Hwa Kim"
+      ],
+      "published": "2026-03-16T17:46:04.000Z",
+      "link": "https://huggingface.co/papers/2603.15583",
+      "category": "AI",
+      "upvotes": 96
     },
     {
       "id": "2603.15612",
@@ -94,37 +114,7 @@
       "published": "2026-03-16T17:58:33.000Z",
       "link": "https://huggingface.co/papers/2603.15612",
       "category": "3D reconstruction",
-      "upvotes": 16
-    },
-    {
-      "id": "2603.15478",
-      "title": "ViFeEdit: A Video-Free Tuner of Your Video Diffusion Transformer",
-      "summary": "Diffusion Transformers (DiTs) have demonstrated remarkable scalability and quality in image and video generation, prompting growing interest in extending them to controllable generation and editing tasks. However, compared to the image counterparts, progress in video control and editing remains limited, mainly due to the scarcity of paired video data and the high computational cost of training video diffusion models. To address this issue, in this paper, we propose a video-free tuning framework termed ViFeEdit for video diffusion transformers. Without requiring any forms of video training data, ViFeEdit achieves versatile video generation and editing, adapted solely with 2D images. At the core of our approach is an architectural reparameterization that decouples spatial independence from the full 3D attention in modern video diffusion transformers, which enables visually faithful editing while maintaining temporal consistency with only minimal additional parameters. Moreover, this design operates in a dual-path pipeline with separate timestep embeddings for noise scheduling, exhibiting strong adaptability to diverse conditioning signals. Extensive experiments demonstrate that our method delivers promising results of controllable video generation and editing with only minimal training on 2D image data. Codes are available https://github.com/Lexie-YU/ViFeEdit.",
-      "authors": [
-        "Ruonan Yu",
-        "Zhenxiong Tan",
-        "Zigeng Chen",
-        "Songhua Liu",
-        "Xinchao Wang"
-      ],
-      "published": "2026-03-16T16:10:46.000Z",
-      "link": "https://huggingface.co/papers/2603.15478",
-      "category": "AI",
-      "upvotes": 14
-    },
-    {
-      "id": "2603.10505",
-      "title": "Safe and Scalable Web Agent Learning via Recreated Websites",
-      "summary": "Training autonomous web agents is fundamentally limited by the environments they learn from: real-world websites are unsafe to explore, hard to reset, and rarely provide verifiable feedback. We propose VeriEnv, a framework that treats language models as environment creators, automatically cloning real-world websites into fully executable, verifiable synthetic environments. By exposing controlled internal access via a Python SDK, VeriEnv enables agents to self-generate tasks with deterministic, programmatically verifiable rewards, eliminating reliance on heuristic or LLM-based judges. This design decouples agent learning from unsafe real-world interaction while enabling scalable self-evolution through environment expansion. Through experiments on web agent benchmarks, we show that agents trained with VeriEnv generalize to unseen websites, achieve site-specific mastery through self-evolving training, and benefit from scaling the number of training environments. Code and resources will be released at https://github.com/kyle8581/VeriEnv upon acceptance.",
-      "authors": [
-        "Hyungjoo Chae",
-        "Jungsoo Park",
-        "Alan Ritter"
-      ],
-      "published": "2026-03-11T07:58:53.000Z",
-      "link": "https://huggingface.co/papers/2603.10505",
-      "category": "language models",
-      "upvotes": 13
+      "upvotes": 92
     },
     {
       "id": "2603.15031",
@@ -172,7 +162,144 @@
       "published": "2026-03-16T09:32:21.000Z",
       "link": "https://huggingface.co/papers/2603.15031",
       "category": "AI",
-      "upvotes": 10
+      "upvotes": 57
+    },
+    {
+      "id": "2603.15619",
+      "title": "Mixture-of-Depths Attention",
+      "summary": "Scaling depth is a key driver for large language models (LLMs). Yet, as LLMs become deeper, they often suffer from signal degradation: informative features formed in shallow layers are gradually diluted by repeated residual updates, making them harder to recover in deeper layers. We introduce mixture-of-depths attention (MoDA), a mechanism that allows each attention head to attend to sequence KV pairs at the current layer and depth KV pairs from preceding layers. We further describe a hardware-efficient algorithm for MoDA that resolves non-contiguous memory-access patterns, achieving 97.3% of FlashAttention-2's efficiency at a sequence length of 64K. Experiments on 1.5B-parameter models demonstrate that MoDA consistently outperforms strong baselines. Notably, it improves average perplexity by 0.2 across 10 validation benchmarks and increases average performance by 2.11% on 10 downstream tasks, with a negligible 3.7% FLOPs computational overhead. We also find that combining MoDA with post-norm yields better performance than using it with pre-norm. These results suggest that MoDA is a promising primitive for depth scaling. Code is released at https://github.com/hustvl/MoDA .",
+      "authors": [
+        "Lianghui Zhu",
+        "Yuxin Fang",
+        "Bencheng Liao",
+        "Shijie Wang",
+        "Tianheng Cheng",
+        "Zilong Huang",
+        "Chen Chen",
+        "Lai Wei",
+        "Yutao Zeng",
+        "Ya Wang",
+        "Yi Lin",
+        "Yu Li",
+        "Xinggang Wang"
+      ],
+      "published": "2026-03-16T17:59:55.000Z",
+      "link": "https://huggingface.co/papers/2603.15619",
+      "category": "AI",
+      "upvotes": 48
+    },
+    {
+      "id": "2603.15590",
+      "title": "Effective Distillation to Hybrid xLSTM Architectures",
+      "summary": "There have been numerous attempts to distill quadratic attention-based large language models (LLMs) into sub-quadratic linearized architectures. However, despite extensive research, such distilled models often fail to match the performance of their teacher LLMs on various downstream tasks. We set out the goal of lossless distillation, which we define in terms of tolerance-corrected Win-and-Tie rates between student and teacher on sets of tasks. To this end, we introduce an effective distillation pipeline for xLSTM-based students. We propose an additional merging stage, where individually linearized experts are combined into a single model. We show the effectiveness of this pipeline by distilling base and instruction-tuned models from the Llama, Qwen, and Olmo families. In many settings, our xLSTM-based students recover most of the teacher's performance, and even exceed it on some downstream tasks. Our contributions are an important step towards more energy-efficient and cost-effective replacements for transformer-based LLMs.",
+      "authors": [
+        "Lukas Hauzenberger",
+        "Niklas Schmidinger",
+        "Thomas Schmied",
+        "Anamaria-Roberta Hartl",
+        "David Stap",
+        "Pieter-Jan Hoedt",
+        "Maximilian Beck",
+        "Sebastian Böck",
+        "Günter Klambauer",
+        "Sepp Hochreiter"
+      ],
+      "published": "2026-03-16T17:49:04.000Z",
+      "link": "https://huggingface.co/papers/2603.15590",
+      "category": "AI",
+      "upvotes": 30
+    },
+    {
+      "id": "2603.15557",
+      "title": "Anatomy of a Lie: A Multi-Stage Diagnostic Framework for Tracing Hallucinations in Vision-Language Models",
+      "summary": "Vision-Language Models (VLMs) frequently \"hallucinate\" - generate plausible yet factually incorrect statements - posing a critical barrier to their trustworthy deployment. In this work, we propose a new paradigm for diagnosing hallucinations, recasting them from static output errors into dynamic pathologies of a model's computational cognition. Our framework is grounded in a normative principle of computational rationality, allowing us to model a VLM's generation as a dynamic cognitive trajectory. We design a suite of information-theoretic probes that project this trajectory onto an interpretable, low-dimensional Cognitive State Space. Our central discovery is a governing principle we term the geometric-information duality: a cognitive trajectory's geometric abnormality within this space is fundamentally equivalent to its high information-theoretic surprisal. Hallucination detection is counts as a geometric anomaly detection problem. Evaluated across diverse settings - from rigorous binary QA (POPE) and comprehensive reasoning (MME) to unconstrained open-ended captioning (MS-COCO) - our framework achieves state-of-the-art performance. Crucially, it operates with high efficiency under weak supervision and remains highly robust even when calibration data is heavily contaminated. This approach enables a causal attribution of failures, mapping observable errors to distinct pathological states: perceptual instability (measured by Perceptual Entropy), logical-causal failure (measured by Inferential Conflict), and decisional ambiguity (measured by Decision Entropy). Ultimately, this opens a path toward building AI systems whose reasoning is transparent, auditable, and diagnosable by design.",
+      "authors": [
+        "Lexiang Xiong",
+        "Qi Li",
+        "Jingwen Ye",
+        "Xinchao Wang"
+      ],
+      "published": "2026-03-16T17:20:38.000Z",
+      "link": "https://huggingface.co/papers/2603.15557",
+      "category": "AI",
+      "upvotes": 24
+    },
+    {
+      "id": "2603.15478",
+      "title": "ViFeEdit: A Video-Free Tuner of Your Video Diffusion Transformer",
+      "summary": "Diffusion Transformers (DiTs) have demonstrated remarkable scalability and quality in image and video generation, prompting growing interest in extending them to controllable generation and editing tasks. However, compared to the image counterparts, progress in video control and editing remains limited, mainly due to the scarcity of paired video data and the high computational cost of training video diffusion models. To address this issue, in this paper, we propose a video-free tuning framework termed ViFeEdit for video diffusion transformers. Without requiring any forms of video training data, ViFeEdit achieves versatile video generation and editing, adapted solely with 2D images. At the core of our approach is an architectural reparameterization that decouples spatial independence from the full 3D attention in modern video diffusion transformers, which enables visually faithful editing while maintaining temporal consistency with only minimal additional parameters. Moreover, this design operates in a dual-path pipeline with separate timestep embeddings for noise scheduling, exhibiting strong adaptability to diverse conditioning signals. Extensive experiments demonstrate that our method delivers promising results of controllable video generation and editing with only minimal training on 2D image data. Codes are available https://github.com/Lexie-YU/ViFeEdit.",
+      "authors": [
+        "Ruonan Yu",
+        "Zhenxiong Tan",
+        "Zigeng Chen",
+        "Songhua Liu",
+        "Xinchao Wang"
+      ],
+      "published": "2026-03-16T16:10:46.000Z",
+      "link": "https://huggingface.co/papers/2603.15478",
+      "category": "AI",
+      "upvotes": 21
+    },
+    {
+      "id": "2603.10505",
+      "title": "Safe and Scalable Web Agent Learning via Recreated Websites",
+      "summary": "Training autonomous web agents is fundamentally limited by the environments they learn from: real-world websites are unsafe to explore, hard to reset, and rarely provide verifiable feedback. We propose VeriEnv, a framework that treats language models as environment creators, automatically cloning real-world websites into fully executable, verifiable synthetic environments. By exposing controlled internal access via a Python SDK, VeriEnv enables agents to self-generate tasks with deterministic, programmatically verifiable rewards, eliminating reliance on heuristic or LLM-based judges. This design decouples agent learning from unsafe real-world interaction while enabling scalable self-evolution through environment expansion. Through experiments on web agent benchmarks, we show that agents trained with VeriEnv generalize to unseen websites, achieve site-specific mastery through self-evolving training, and benefit from scaling the number of training environments. Code and resources will be released at https://github.com/kyle8581/VeriEnv upon acceptance.",
+      "authors": [
+        "Hyungjoo Chae",
+        "Jungsoo Park",
+        "Alan Ritter"
+      ],
+      "published": "2026-03-11T07:58:53.000Z",
+      "link": "https://huggingface.co/papers/2603.10505",
+      "category": "language models",
+      "upvotes": 18
+    },
+    {
+      "id": "2603.14769",
+      "title": "POLCA: Stochastic Generative Optimization with LLM",
+      "summary": "Optimizing complex systems, ranging from LLM prompts to multi-turn agents, traditionally requires labor-intensive manual iteration. We formalize this challenge as a stochastic generative optimization problem where a generative language model acts as the optimizer, guided by numerical rewards and text feedback to discover the best system. We introduce Prioritized Optimization with Local Contextual Aggregation (POLCA), a scalable framework designed to handle stochasticity in optimization -- such as noisy feedback, sampling minibatches, and stochastic system behaviors -- while effectively managing the unconstrained expansion of solution space. POLCA maintains a priority queue to manage the exploration-exploitation tradeoff, systematically tracking candidate solutions and their evaluation histories. To enhance efficiency, we integrate an varepsilon-Net mechanism to maintain parameter diversity and an LLM Summarizer to perform meta-learning across historical trials. We theoretically prove that POLCA converges to near-optimal candidate solutions under stochasticity. We evaluate our framework on diverse benchmarks, including τ-bench, HotpotQA (agent optimization), VeriBench (code translation) and KernelBench (CUDA kernel generation). Experimental results demonstrate that POLCA achieves robust, sample and time-efficient performance, consistently outperforming state-of-the-art algorithms in both deterministic and stochastic problems. The codebase for this work is publicly available at https://github.com/rlx-lab/POLCA.",
+      "authors": [
+        "Xuanfei Ren",
+        "Allen Nie",
+        "Tengyang Xie",
+        "Ching-An Cheng"
+      ],
+      "published": "2026-03-16T03:07:44.000Z",
+      "link": "https://huggingface.co/papers/2603.14769",
+      "category": "generative language model",
+      "upvotes": 16
+    },
+    {
+      "id": "2603.14610",
+      "title": "Make it SING: Analyzing Semantic Invariants in Classifiers",
+      "summary": "All classifiers, including state-of-the-art vision models, possess invariants, partially rooted in the geometry of their linear mappings. These invariants, which reside in the null-space of the classifier, induce equivalent sets of inputs that map to identical outputs. The semantic content of these invariants remains vague, as existing approaches struggle to provide human-interpretable information. To address this gap, we present Semantic Interpretation of the Null-space Geometry (SING), a method that constructs equivalent images, with respect to the network, and assigns semantic interpretations to the available variations. We use a mapping from network features to multi-modal vision language models. This allows us to obtain natural language descriptions and visual examples of the induced semantic shifts. SING can be applied to a single image, uncovering local invariants, or to sets of images, allowing a breadth of statistical analysis at the class and model levels. For example, our method reveals that ResNet50 leaks relevant semantic attributes to the null space, whereas DinoViT, a ViT pretrained with self-supervised DINO, is superior in maintaining class semantics across the invariant space.",
+      "authors": [
+        "Harel Yadid",
+        "Meir Yossef Levi",
+        "Roy Betser",
+        "Guy Gilboa"
+      ],
+      "published": "2026-03-15T21:13:14.000Z",
+      "link": "https://huggingface.co/papers/2603.14610",
+      "category": "AI",
+      "upvotes": 15
+    },
+    {
+      "id": "2603.12529",
+      "title": "TERMINATOR: Learning Optimal Exit Points for Early Stopping in Chain-of-Thought Reasoning",
+      "summary": "Large Reasoning Models (LRMs) achieve impressive performance on complex reasoning tasks via Chain-of-Thought (CoT) reasoning, which enables them to generate intermediate thinking tokens before arriving at the final answer. However, LRMs often suffer from significant overthinking, spending excessive compute time even after the answer is generated early on. Prior work has identified the existence of an optimal reasoning length such that truncating reasoning at this point significantly shortens CoT outputs with virtually no change in performance. However, determining optimal CoT lengths for practical datasets is highly non-trivial as they are fully task and model-dependent. In this paper, we precisely address this and design TERMINATOR, an early-exit strategy for LRMs at inference to mitigate overthinking. The central idea underpinning TERMINATOR is that the first arrival of an LRM's final answer is often predictable, and we leverage these first answer positions to create a novel dataset of optimal reasoning lengths to train TERMINATOR. Powered by this approach, TERMINATOR achieves significant reductions in CoT lengths of 14%-55% on average across four challenging practical datasets: MATH-500, AIME 2025, HumanEval, and GPQA, whilst outperforming current state-of-the-art methods.",
+      "authors": [
+        "Alliot Nagle",
+        "Jakhongir Saydaliev",
+        "Dhia Garbaya",
+        "Michael Gastpar",
+        "Ashok Vardhan Makkuva",
+        "Hyeji Kim"
+      ],
+      "published": "2026-03-13T00:07:18.000Z",
+      "link": "https://huggingface.co/papers/2603.12529",
+      "category": "Chain-of-Thought",
+      "upvotes": 13
     },
     {
       "id": "2603.13391",
@@ -194,6 +321,23 @@
       ],
       "published": "2026-03-11T07:48:23.000Z",
       "link": "https://huggingface.co/papers/2603.13391",
+      "category": "AI",
+      "upvotes": 12
+    },
+    {
+      "id": "2603.15500",
+      "title": "Understanding Reasoning in LLMs through Strategic Information Allocation under Uncertainty",
+      "summary": "LLMs often exhibit Aha moments during reasoning, such as apparent self-correction following tokens like \"Wait,\" yet their underlying mechanisms remain unclear. We introduce an information-theoretic framework that decomposes reasoning into procedural information and epistemic verbalization - the explicit externalization of uncertainty that supports downstream control actions. We show that purely procedural reasoning can become informationally stagnant, whereas epistemic verbalization enables continued information acquisition and is critical for achieving information sufficiency. Empirical results demonstrate that strong reasoning performance is driven by uncertainty externalization rather than specific surface tokens. Our framework unifies prior findings on Aha moments and post-training experiments, and offers insights for future reasoning model design.",
+      "authors": [
+        "Jeonghye Kim",
+        "Xufang Luo",
+        "Minbeom Kim",
+        "Sangmook Lee",
+        "Dongsheng Li",
+        "Yuqing Yang"
+      ],
+      "published": "2026-03-16T16:31:24.000Z",
+      "link": "https://huggingface.co/papers/2603.15500",
       "category": "AI",
       "upvotes": 9
     },
@@ -218,6 +362,71 @@
       ],
       "published": "2026-03-16T17:21:49.000Z",
       "link": "https://huggingface.co/papers/2603.15558",
+      "category": "AI",
+      "upvotes": 9
+    },
+    {
+      "id": "2603.13364",
+      "title": "FineRMoE: Dimension Expansion for Finer-Grained Expert with Its Upcycling Approach",
+      "summary": "As revealed by the scaling law of fine-grained MoE, model performance ceases to be improved once the granularity of the intermediate dimension exceeds the optimal threshold, limiting further gains from single-dimension fine-grained design. To address this bottleneck, we propose FineRMoE (FineR-Grained MoE), an architecture that extends fine-grained expert design to both intermediate and output dimensions, aiming to enhance expert specialization beyond the single-dimension limit. We further introduce a bi-level sparse forward computation paradigm and a specialized routing mechanism to govern the activation. In addition, to obviate the prohibitive cost of training FineRMoE from scratch, we devise a generalized upcycling method to build FineRMoE in a cost-effective manner. Extensive experiments demonstrate the superior performance achieved by FineRMoE across ten standard benchmarks. Compared with the strongest baseline, FineRMoE achieves 6 times higher parameter efficiency, 281 times lower prefill latency, and 136 timese higher decoding throughput during inference.",
+      "authors": [
+        "Ning Liao",
+        "Xiaoxing Wang",
+        "Xiaohan Qin",
+        "Junchi Yan"
+      ],
+      "published": "2026-03-09T12:00:36.000Z",
+      "link": "https://huggingface.co/papers/2603.13364",
+      "category": "AI",
+      "upvotes": 9
+    },
+    {
+      "id": "2603.15016",
+      "title": "Riemannian Motion Generation: A Unified Framework for Human Motion Representation and Generation via Riemannian Flow Matching",
+      "summary": "Human motion generation is often learned in Euclidean spaces, although valid motions follow structured non-Euclidean geometry. We present Riemannian Motion Generation (RMG), a unified framework that represents motion on a product manifold and learns dynamics via Riemannian flow matching. RMG factorizes motion into several manifold factors, yielding a scale-free representation with intrinsic normalization, and uses geodesic interpolation, tangent-space supervision, and manifold-preserving ODE integration for training and sampling. On HumanML3D, RMG achieves state-of-the-art FID in the HumanML3D format (0.043) and ranks first on all reported metrics under the MotionStreamer format. On MotionMillion, it also surpasses strong baselines (FID 5.6, R@1 0.86). Ablations show that the compact T+R (translation + rotations) representation is the most stable and effective, highlighting geometry-aware modeling as a practical and scalable route to high-fidelity motion generation.",
+      "authors": [
+        "Fangran Miao",
+        "Jian Huang",
+        "Ting Li"
+      ],
+      "published": "2026-03-16T09:19:10.000Z",
+      "link": "https://huggingface.co/papers/2603.15016",
+      "category": "AI",
+      "upvotes": 8
+    },
+    {
+      "id": "2603.15555",
+      "title": "Learning Latent Proxies for Controllable Single-Image Relighting",
+      "summary": "Single-image relighting is highly under-constrained: small illumination changes can produce large, nonlinear variations in shading, shadows, and specularities, while geometry and materials remain unobserved. Existing diffusion-based approaches either rely on intrinsic or G-buffer pipelines that require dense and fragile supervision, or operate purely in latent space without physical grounding, making fine-grained control of direction, intensity, and color unreliable. We observe that a full intrinsic decomposition is unnecessary and redundant for accurate relighting. Instead, sparse but physically meaningful cues, indicating where illumination should change and how materials should respond, are sufficient to guide a diffusion model. Based on this insight, we introduce LightCtrl that integrates physical priors at two levels: a few-shot latent proxy encoder that extracts compact material-geometry cues from limited PBR supervision, and a lighting-aware mask that identifies sensitive illumination regions and steers the denoiser toward shading relevant pixels. To compensate for scarce PBR data, we refine the proxy branch using a DPO-based objective that enforces physical consistency in the predicted cues. We also present ScaLight, a large-scale object-level dataset with systematically varied illumination and complete camera-light metadata, enabling physically consistent and controllable training. Across object and scene level benchmarks, our method achieves photometrically faithful relighting with accurate continuous control, surpassing prior diffusion and intrinsic-based baselines, including gains of up to +2.4 dB PSNR and 35% lower RMSE under controlled lighting shifts.",
+      "authors": [
+        "Haoze Zheng",
+        "Zihao Wang",
+        "Xianfeng Wu",
+        "Yajing Bai",
+        "Yexin Liu",
+        "Yun Li",
+        "Xiaogang Xu",
+        "Harry Yang"
+      ],
+      "published": "2026-03-16T17:16:59.000Z",
+      "link": "https://huggingface.co/papers/2603.15555",
+      "category": "AI",
+      "upvotes": 8
+    },
+    {
+      "id": "2603.13985",
+      "title": "Supervised Fine-Tuning versus Reinforcement Learning: A Study of Post-Training Methods for Large Language Models",
+      "summary": "Pre-trained Large Language Model (LLM) exhibits broad capabilities, yet, for specific tasks or domains their attainment of higher accuracy and more reliable reasoning generally depends on post-training through Supervised Fine-Tuning (SFT) or Reinforcement Learning (RL). Although often treated as distinct methodologies, recent theoretical and empirical developments demonstrate that SFT and RL are closely connected. This study presents a comprehensive and unified perspective on LLM post-training with SFT and RL. We first provide an in-depth overview of both techniques, examining their objectives, algorithmic structures, and data requirements. We then systematically analyze their interplay, highlighting frameworks that integrate SFT and RL, hybrid training pipelines, and methods that leverage their complementary strengths. Drawing on a representative set of recent application studies from 2023 to 2025, we identify emerging trends, characterize the rapid shift toward hybrid post-training paradigms, and distill key takeaways that clarify when and why each method is most effective. By synthesizing theoretical insights, practical methodologies, and empirical evidence, this study establishes a coherent understanding of SFT and RL within a unified framework and outlines promising directions for future research in scalable, efficient, and generalizable LLM post-training.",
+      "authors": [
+        "Haitao Jiang",
+        "Wenbo Zhang",
+        "Jiarui Yao",
+        "Hengrui Cai",
+        "Sheng Wang",
+        "Rui Song"
+      ],
+      "published": "2026-03-14T15:24:38.000Z",
+      "link": "https://huggingface.co/papers/2603.13985",
       "category": "AI",
       "upvotes": 8
     },
@@ -249,6 +458,152 @@
       "published": "2026-03-14T22:28:38.000Z",
       "link": "https://huggingface.co/papers/2603.14145",
       "category": "AI",
+      "upvotes": 8
+    },
+    {
+      "id": "2603.15026",
+      "title": "Training-free Detection of Generated Videos via Spatial-Temporal Likelihoods",
+      "summary": "Following major advances in text and image generation, the video domain has surged, producing highly realistic and controllable sequences. Along with this progress, these models also raise serious concerns about misinformation, making reliable detection of synthetic videos increasingly crucial. Image-based detectors are fundamentally limited because they operate per frame and ignore temporal dynamics, while supervised video detectors generalize poorly to unseen generators, a critical drawback given the rapid emergence of new models. These challenges motivate zero-shot approaches, which avoid synthetic data and instead score content against real-data statistics, enabling training-free, model-agnostic detection. We introduce STALL, a simple, training-free, theoretically justified detector that provides likelihood-based scoring for videos, jointly modeling spatial and temporal evidence within a probabilistic framework. We evaluate STALL on two public benchmarks and introduce ComGenVid, a new benchmark with state-of-the-art generative models. STALL consistently outperforms prior image- and video-based baselines. Code and data are available at https://omerbenhayun.github.io/stall-video.",
+      "authors": [
+        "Omer Ben Hayun",
+        "Roy Betser",
+        "Meir Yossef Levi",
+        "Levi Kassel",
+        "Guy Gilboa"
+      ],
+      "published": "2026-03-16T09:26:56.000Z",
+      "link": "https://huggingface.co/papers/2603.15026",
+      "category": "AI",
+      "upvotes": 7
+    },
+    {
+      "id": "2603.15611",
+      "title": "Code-A1: Adversarial Evolving of Code LLM and Test LLM via Reinforcement Learning",
+      "summary": "Reinforcement learning for code generation relies on verifiable rewards from unit test pass rates. Yet high-quality test suites are scarce, existing datasets offer limited coverage, and static rewards fail to adapt as models improve. Recent self-play methods unify code and test generation in a single model, but face a inherent dilemma: white-box access leads to self-collusion where the model produces trivial tests for easy rewards, yet black-box restriction yields generic tests that miss implementation-specific bugs. We introduce Code-A1, an adversarial co-evolution framework that jointly optimizes a Code LLM and a Test LLM with opposing objectives. The Code LLM is rewarded for passing more tests, while the Test LLM is rewarded for exposing more defects. This architectural separation eliminates self-collusion risks and safely enables white-box test generation, where the Test LLM can inspect candidate code to craft targeted adversarial tests. We further introduce a Mistake Book mechanism for experience replay and a composite reward balancing test validity with adversarial difficulty. Experiments on Qwen2.5-Coder models demonstrate that Code-A1 achieves code generation performance matching or exceeding models trained on human-annotated tests, while significantly improving test generation capability.",
+      "authors": [
+        "Aozhe Wang",
+        "Yuchen Yan",
+        "Nan Zhou",
+        "Zhengxi Lu",
+        "Weiming Lu",
+        "Jun Xiao",
+        "Yueting Zhuang",
+        "Yongliang Shen"
+      ],
+      "published": "2026-03-16T17:58:13.000Z",
+      "link": "https://huggingface.co/papers/2603.15611",
+      "category": "AI",
+      "upvotes": 7
+    },
+    {
+      "id": "2603.15563",
+      "title": "The PokeAgent Challenge: Competitive and Long-Context Learning at Scale",
+      "summary": "We present the PokeAgent Challenge, a large-scale benchmark for decision-making research built on Pokemon's multi-agent battle system and expansive role-playing game (RPG) environment. Partial observability, game-theoretic reasoning, and long-horizon planning remain open problems for frontier AI, yet few benchmarks stress all three simultaneously under realistic conditions. PokeAgent targets these limitations at scale through two complementary tracks: our Battling Track, which calls for strategic reasoning and generalization under partial observability in competitive Pokemon battles, and our Speedrunning Track, which requires long-horizon planning and sequential decision-making in the Pokemon RPG. Our Battling Track supplies a dataset of 20M+ battle trajectories alongside a suite of heuristic, RL, and LLM-based baselines capable of high-level competitive play. Our Speedrunning Track provides the first standardized evaluation framework for RPG speedrunning, including an open-source multi-agent orchestration system for modular, reproducible comparisons of harness-based LLM approaches. Our NeurIPS 2025 competition validates both the quality of our resources and the research community's interest in Pokemon, with over 100 teams competing across both tracks and winning solutions detailed in our paper. Participant submissions and our baselines reveal considerable gaps between generalist (LLM), specialist (RL), and elite human performance. Analysis against the BenchPress evaluation matrix shows that Pokemon battling is nearly orthogonal to standard LLM benchmarks, measuring capabilities not captured by existing suites and positioning Pokemon as an unsolved benchmark that can drive RL and LLM research forward. We transition to a living benchmark with a live leaderboard for Battling and self-contained evaluation for Speedrunning at https://pokeagentchallenge.com.",
+      "authors": [
+        "Seth Karten",
+        "Jake Grigsby",
+        "Tersoo Upaa",
+        "Junik Bae",
+        "Seonghun Hong",
+        "Hyunyoung Jeong",
+        "Jaeyoon Jung",
+        "Kun Kerdthaisong",
+        "Gyungbo Kim",
+        "Hyeokgi Kim",
+        "Yujin Kim",
+        "Eunju Kwon",
+        "Dongyu Liu",
+        "Patrick Mariglia",
+        "Sangyeon Park",
+        "Benedikt Schink",
+        "Xianwei Shi",
+        "Anthony Sistilli",
+        "Joseph Twin",
+        "Arian Urdu",
+        "Matin Urdu",
+        "Qiao Wang",
+        "Ling Wu",
+        "Wenli Zhang",
+        "Kunsheng Zhou",
+        "Stephanie Milani",
+        "Kiran Vodrahalli",
+        "Amy Zhang",
+        "Fei Fang",
+        "Yuke Zhu",
+        "Chi Jin"
+      ],
+      "published": "2026-03-16T17:25:42.000Z",
+      "link": "https://huggingface.co/papers/2603.15563",
+      "category": "multi-agent battle system",
+      "upvotes": 6
+    },
+    {
+      "id": "2603.14941",
+      "title": "RS-WorldModel: a Unified Model for Remote Sensing Understanding and Future Sense Forecasting",
+      "summary": "Remote sensing world models aim to both explain observed changes and forecast plausible futures, two tasks that share spatiotemporal priors. Existing methods, however, typically address them separately, limiting cross-task transfer. We present RS-WorldModel, a unified world model for remote sensing that jointly handles spatiotemporal change understanding and text-guided future scene forecasting, and we build RSWBench-1.1M, a 1.1 million sample dataset with rich language annotations covering both tasks. RS-WorldModel is trained in three stages: (1) Geo-Aware Generative Pre-training (GAGP) conditions forecasting on geographic and acquisition metadata; (2) synergistic instruction tuning (SIT) jointly trains understanding and forecasting; (3) verifiable reinforcement optimization (VRO) refines outputs with verifiable, task-specific rewards. With only 2B parameters, RS-WorldModel surpasses open-source models up to 120 times  larger on most spatiotemporal change question-answering metrics. It achieves an FID of 43.13 on text-guided future scene forecasting, outperforming all open-source baselines as well as the closed-source Gemini-2.5-Flash Image (Nano Banana).",
+      "authors": [
+        "Linrui Xu",
+        "Zhongan Wang",
+        "Fei Shen",
+        "Gang Xu",
+        "Huiping Zhuang",
+        "Ming Li",
+        "Haifeng Li"
+      ],
+      "published": "2026-03-16T07:45:15.000Z",
+      "link": "https://huggingface.co/papers/2603.14941",
+      "category": "AI",
+      "upvotes": 6
+    },
+    {
+      "id": "2603.14659",
+      "title": "VisionCoach: Reinforcing Grounded Video Reasoning via Visual-Perception Prompting",
+      "summary": "Video reasoning requires models to locate and track question-relevant evidence across frames. While reinforcement learning (RL) with verifiable rewards improves accuracy, it still struggles to achieve reliable spatio-temporal grounding during the reasoning process. Moreover, improving grounding typically relies on scaled training data or inference-time perception tools, which increases annotation cost or computational cost. To address this challenge, we propose VisonCoach, an input-adaptive RL framework that improves spatio-temporal grounding through visual prompting as training-time guidance. During RL training, visual prompts are selectively applied to challenging inputs to amplify question-relevant evidence and suppress distractors. The model then internalizes these improvements through self-distillation, enabling grounded reasoning directly on raw videos without visual prompting at inference. VisonCoach consists of two components: (1) Visual Prompt Selector, which predicts appropriate prompt types conditioned on the video and question, and (2) Spatio-Temporal Reasoner, optimized with RL under visual prompt guidance and object-aware grounding rewards that enforce object identity consistency and multi-region bounding-box overlap. Extensive experiments demonstrate that VisonCoach achieves state-of-the-art performance under comparable settings, across diverse video reasoning, video understanding, and temporal grounding benchmarks (V-STAR, VideoMME, World-Sense, VideoMMMU, PerceptionTest, and Charades-STA), while maintaining a single efficient inference pathway without external tools. Our results show that visual prompting during training improves grounded video reasoning, while self-distillation enables the model to internalize this ability without requiring prompts at inference time.",
+      "authors": [
+        "Daeun Lee",
+        "Shoubin Yu",
+        "Yue Zhang",
+        "Mohit Bansal"
+      ],
+      "published": "2026-03-15T23:32:02.000Z",
+      "link": "https://huggingface.co/papers/2603.14659",
+      "category": "AI",
+      "upvotes": 5
+    },
+    {
+      "id": "2603.15617",
+      "title": "HorizonMath: Measuring AI Progress Toward Mathematical Discovery with Automatic Verification",
+      "summary": "Can AI make progress on important, unsolved mathematical problems? Large language models are now capable of sophisticated mathematical and scientific reasoning, but whether they can perform novel research is still widely debated and underexplored. We introduce HorizonMath, a benchmark of over 100 predominantly unsolved problems spanning 8 domains in computational and applied mathematics, paired with an open-source evaluation framework for automated verification. Our benchmark targets a class of problems where discovery is hard, requiring meaningful mathematical insight, but verification is computationally efficient and simple. Because these solutions are unknown, HorizonMath is immune to data contamination, and most state-of-the-art models score near 0%. Existing research-level benchmarks instead rely on formal proof verification or manual review, both of which are expensive to scale. Using this platform, we find two problems for which GPT 5.4 Pro proposes solutions that improve on the best-known published results, representing potential novel contributions (pending expert review). We release HorizonMath as an open challenge and a growing community resource, where correct solutions to problems in the unsolved problem classes could constitute novel results in the mathematical literature.",
+      "authors": [
+        "Erik Y. Wang",
+        "Sumeet Motwani",
+        "James V. Roggeveen",
+        "Eliot Hodges",
+        "Dulhan Jayalath",
+        "Charles London",
+        "Kalyan Ramakrishnan",
+        "Flaviu Cipcigan",
+        "Philip Torr",
+        "Alessandro Abate"
+      ],
+      "published": "2026-03-16T17:59:53.000Z",
+      "link": "https://huggingface.co/papers/2603.15617",
+      "category": "AI",
+      "upvotes": 4
+    },
+    {
+      "id": "2603.15616",
+      "title": "GlyphPrinter: Region-Grouped Direct Preference Optimization for Glyph-Accurate Visual Text Rendering",
+      "summary": "Generating accurate glyphs for visual text rendering is essential yet challenging. Existing methods typically enhance text rendering by training on a large amount of high-quality scene text images, but the limited coverage of glyph variations and excessive stylization often compromise glyph accuracy, especially for complex or out-of-domain characters. Some methods leverage reinforcement learning to alleviate this issue, yet their reward models usually depend on text recognition systems that are insensitive to fine-grained glyph errors, so images with incorrect glyphs may still receive high rewards. Inspired by Direct Preference Optimization (DPO), we propose GlyphPrinter, a preference-based text rendering method that eliminates reliance on explicit reward models. However, the standard DPO objective only models overall preference between two samples, which is insufficient for visual text rendering where glyph errors typically occur in localized regions. To address this issue, we construct the GlyphCorrector dataset with region-level glyph preference annotations and propose Region-Grouped DPO (R-GDPO), a region-based objective that optimizes inter- and intra-sample preferences over annotated regions, substantially enhancing glyph accuracy. Furthermore, we introduce Regional Reward Guidance, an inference strategy that samples from an optimal distribution with controllable glyph accuracy. Extensive experiments demonstrate that the proposed GlyphPrinter outperforms existing methods in glyph accuracy while maintaining a favorable balance between stylization and precision.",
+      "authors": [
+        "Xincheng Shuai",
+        "Ziye Li",
+        "Henghui Ding",
+        "Dacheng Tao"
+      ],
+      "published": "2026-03-16T17:59:31.000Z",
+      "link": "https://huggingface.co/papers/2603.15616",
+      "category": "AI",
       "upvotes": 4
     },
     {
@@ -270,35 +625,108 @@
       "upvotes": 4
     },
     {
-      "id": "2603.13364",
-      "title": "FineRMoE: Dimension Expansion for Finer-Grained Expert with Its Upcycling Approach",
-      "summary": "As revealed by the scaling law of fine-grained MoE, model performance ceases to be improved once the granularity of the intermediate dimension exceeds the optimal threshold, limiting further gains from single-dimension fine-grained design. To address this bottleneck, we propose FineRMoE (FineR-Grained MoE), an architecture that extends fine-grained expert design to both intermediate and output dimensions, aiming to enhance expert specialization beyond the single-dimension limit. We further introduce a bi-level sparse forward computation paradigm and a specialized routing mechanism to govern the activation. In addition, to obviate the prohibitive cost of training FineRMoE from scratch, we devise a generalized upcycling method to build FineRMoE in a cost-effective manner. Extensive experiments demonstrate the superior performance achieved by FineRMoE across ten standard benchmarks. Compared with the strongest baseline, FineRMoE achieves 6 times higher parameter efficiency, 281 times lower prefill latency, and 136 timese higher decoding throughput during inference.",
+      "id": "2603.14312",
+      "title": "Autonomous Agents Coordinating Distributed Discovery Through Emergent Artifact Exchange",
+      "summary": "We present ScienceClaw + Infinite, a framework for autonomous scientific investigation in which independent agents conduct research without central coordination, and any contributor can deploy new agents into a shared ecosystem. The system is built around three components: an extensible registry of over 300 interoperable scientific skills, an artifact layer that preserves full computational lineage as a directed acyclic graph (DAG), and a structured platform for agent-based scientific discourse with provenance-aware governance. Agents select and chain tools based on their scientific profiles, produce immutable artifacts with typed metadata and parent lineage, and broadcast unsatisfied information needs to a shared global index. The ArtifactReactor enables plannerless coordination: peer agents discover and fulfill open needs through pressure-based scoring, while schema-overlap matching triggers multi-parent synthesis across independent analyses. An autonomous mutation layer actively prunes the expanding artifact DAG to resolve conflicting or redundant workflows, while persistent memory allows agents to continuously build upon complex epistemic states across multiple cycles. Infinite converts these outputs into auditable scientific records through structured posts, provenance views, and machine-readable discourse relations, with community feedback steering subsequent investigation cycles. Across four autonomous investigations, peptide design for the somatostatin receptor SSTR2, lightweight impact-resistant ceramic screening, cross-domain resonance bridging biology, materials, and music, and formal analogy construction between urban morphology and grain-boundary evolution, the framework demonstrates heterogeneous tool chaining, emergent convergence among independently operating agents, and traceable reasoning from raw computation to published finding.",
       "authors": [
-        "Ning Liao",
-        "Xiaoxing Wang",
-        "Xiaohan Qin",
-        "Junchi Yan"
+        "Fiona Y. Wang",
+        "Lee Marom",
+        "Subhadeep Pal",
+        "Rachel K. Luu",
+        "Wei Lu",
+        "Jaime A. Berkovich",
+        "Markus J. Buehler"
       ],
-      "published": "2026-03-09T12:00:36.000Z",
-      "link": "https://huggingface.co/papers/2603.13364",
+      "published": "2026-03-15T10:06:57.000Z",
+      "link": "https://huggingface.co/papers/2603.14312",
       "category": "AI",
-      "upvotes": 4
+      "upvotes": 3
     },
     {
-      "id": "2603.12529",
-      "title": "TERMINATOR: Learning Optimal Exit Points for Early Stopping in Chain-of-Thought Reasoning",
-      "summary": "Large Reasoning Models (LRMs) achieve impressive performance on complex reasoning tasks via Chain-of-Thought (CoT) reasoning, which enables them to generate intermediate thinking tokens before arriving at the final answer. However, LRMs often suffer from significant overthinking, spending excessive compute time even after the answer is generated early on. Prior work has identified the existence of an optimal reasoning length such that truncating reasoning at this point significantly shortens CoT outputs with virtually no change in performance. However, determining optimal CoT lengths for practical datasets is highly non-trivial as they are fully task and model-dependent. In this paper, we precisely address this and design TERMINATOR, an early-exit strategy for LRMs at inference to mitigate overthinking. The central idea underpinning TERMINATOR is that the first arrival of an LRM's final answer is often predictable, and we leverage these first answer positions to create a novel dataset of optimal reasoning lengths to train TERMINATOR. Powered by this approach, TERMINATOR achieves significant reductions in CoT lengths of 14%-55% on average across four challenging practical datasets: MATH-500, AIME 2025, HumanEval, and GPQA, whilst outperforming current state-of-the-art methods.",
+      "id": "2603.14371",
+      "title": "OxyGen: Unified KV Cache Management for Vision-Language-Action Models under Multi-Task Parallelism",
+      "summary": "Embodied AI agents increasingly require parallel execution of multiple tasks, such as manipulation, conversation, and memory construction, from shared observations under distinct time constraints. Recent Mixture-of-Transformers (MoT) Vision-Language-Action Models (VLAs) architecturally support such heterogeneous outputs, yet existing inference systems fail to achieve efficient multi-task parallelism for on-device deployment due to redundant computation and resource contention. We identify isolated KV cache management as the root cause. To address this, we propose unified KV cache management, an inference paradigm that treats KV cache as a first-class shared resource across tasks and over time. This abstraction enables two key optimizations: cross-task KV sharing eliminates redundant prefill of shared observations, while cross-frame continuous batching decouples variable-length language decoding from fixed-rate action generation across control cycles. We implement this paradigm for π_{0.5}, the most popular MoT VLA, and evaluate under representative robotic configurations. OxyGen achieves up to 3.7times speedup over isolated execution, delivering over 200 tokens/s language throughput and 70 Hz action frequency simultaneously without action quality degradation.",
       "authors": [
-        "Alliot Nagle",
-        "Jakhongir Saydaliev",
-        "Dhia Garbaya",
-        "Michael Gastpar",
-        "Ashok Vardhan Makkuva",
-        "Hyeji Kim"
+        "Xiangyu Li",
+        "Huaizhi Tang",
+        "Xin Ding",
+        "Weijun Wang",
+        "Ting Cao",
+        "Yunxin Liu"
       ],
-      "published": "2026-03-13T00:07:18.000Z",
-      "link": "https://huggingface.co/papers/2603.12529",
-      "category": "Chain-of-Thought",
+      "published": "2026-03-15T13:23:56.000Z",
+      "link": "https://huggingface.co/papers/2603.14371",
+      "category": "AI",
+      "upvotes": 3
+    },
+    {
+      "id": "2603.15620",
+      "title": "Towards Generalizable Robotic Manipulation in Dynamic Environments",
+      "summary": "Vision-Language-Action (VLA) models excel in static manipulation but struggle in dynamic environments with moving targets. This performance gap primarily stems from a scarcity of dynamic manipulation datasets and the reliance of mainstream VLAs on single-frame observations, restricting their spatiotemporal reasoning capabilities. To address this, we introduce DOMINO, a large-scale dataset and benchmark for generalizable dynamic manipulation, featuring 35 tasks with hierarchical complexities, over 110K expert trajectories, and a multi-dimensional evaluation suite. Through comprehensive experiments, we systematically evaluate existing VLAs on dynamic tasks, explore effective training strategies for dynamic awareness, and validate the generalizability of dynamic data. Furthermore, we propose PUMA, a dynamics-aware VLA architecture. By integrating scene-centric historical optical flow and specialized world queries to implicitly forecast object-centric future states, PUMA couples history-aware perception with short-horizon prediction. Results demonstrate that PUMA achieves state-of-the-art performance, yielding a 6.3% absolute improvement in success rate over baselines. Moreover, we show that training on dynamic data fosters robust spatiotemporal representations that transfer to static tasks. All code and data are available at https://github.com/H-EmbodVis/DOMINO.",
+      "authors": [
+        "Heng Fang",
+        "Shangru Li",
+        "Shuhan Wang",
+        "Xuanyang Xi",
+        "Dingkang Liang",
+        "Xiang Bai"
+      ],
+      "published": "2026-03-16T17:59:57.000Z",
+      "link": "https://huggingface.co/papers/2603.15620",
+      "category": "AI",
+      "upvotes": 3
+    },
+    {
+      "id": "2603.15389",
+      "title": "When Does Sparsity Mitigate the Curse of Depth in LLMs",
+      "summary": "Recent work has demonstrated the curse of depth in large language models (LLMs), where later layers contribute less to learning and representation than earlier layers. Such under-utilization is linked to the accumulated growth of variance in Pre-Layer Normalization, which can push deep blocks toward near-identity behavior. In this paper, we demonstrate that, sparsity, beyond enabling efficiency, acts as a regulator of variance propagation and thereby improves depth utilization. Our investigation covers two sources of sparsity: (i) implicit sparsity, which emerges from training and data conditions, including weight sparsity induced by weight decay and attention sparsity induced by long context inputs; and (ii) explicit sparsity, which is enforced by architectural design, including key/value-sharing sparsity in Grouped-Query Attention and expert-activation sparsity in Mixtureof-Experts. Our claim is thoroughly supported by controlled depth-scaling experiments and targeted layer effectiveness interventions. Across settings, we observe a consistent relationship: sparsity improves layer utilization by reducing output variance and promoting functional differentiation. We eventually distill our findings into a practical rule-of-thumb recipe for training deptheffective LLMs, yielding a notable 4.6% accuracy improvement on downstream tasks. Our results reveal sparsity, arising naturally from standard design choices, as a key yet previously overlooked mechanism for effective depth scaling in LLMs. Code is available at https://github.com/pUmpKin-Co/SparsityAndCoD.",
+      "authors": [
+        "Dilxat Muhtar",
+        "Xinyuan Song",
+        "Sebastian Pokutta",
+        "Max Zimmer",
+        "Nico Pelleriti",
+        "Thomas Hofmann",
+        "Shiwei Liu"
+      ],
+      "published": "2026-03-16T15:04:16.000Z",
+      "link": "https://huggingface.co/papers/2603.15389",
+      "category": "AI",
+      "upvotes": 3
+    },
+    {
+      "id": "2603.14347",
+      "title": "Motivation in Large Language Models",
+      "summary": "Motivation is a central driver of human behavior, shaping decisions, goals, and task performance. As large language models (LLMs) become increasingly aligned with human preferences, we ask whether they exhibit something akin to motivation. We examine whether LLMs \"report\" varying levels of motivation, how these reports relate to their behavior, and whether external factors can influence them. Our experiments reveal consistent and structured patterns that echo human psychology: self-reported motivation aligns with different behavioral signatures, varies across task types, and can be modulated by external manipulations. These findings demonstrate that motivation is a coherent organizing construct for LLM behavior, systematically linking reports, choices, effort, and performance, and revealing motivational dynamics that resemble those documented in human psychology. This perspective deepens our understanding of model behavior and its connection to human-inspired concepts.",
+      "authors": [
+        "Omer Nahum",
+        "Asael Sklar",
+        "Ariel Goldstein",
+        "Roi Reichart"
+      ],
+      "published": "2026-03-15T12:30:36.000Z",
+      "link": "https://huggingface.co/papers/2603.14347",
+      "category": "AI",
+      "upvotes": 3
+    },
+    {
+      "id": "2603.15206",
+      "title": "Efficient Document Parsing via Parallel Token Prediction",
+      "summary": "Document parsing, as a fundamental yet crucial vision task, is being revolutionized by vision-language models (VLMs). However, the autoregressive (AR) decoding inherent to VLMs creates a significant bottleneck, severely limiting parsing speed. In this paper, we propose Parallel-Token Prediction (PTP), a plugable, model-agnostic and simple-yet-effective method that enables VLMs to generate multiple future tokens in parallel with improved sample efficiency. Specifically, we insert some learnable tokens into the input sequence and design corresponding training objectives to equip the model with parallel decoding capabilities for document parsing. Furthermore, to support effective training, we develop a comprehensive data generation pipeline that efficiently produces large-scale, high-quality document parsing training data for VLMs. Extensive experiments on OmniDocBench and olmOCR-bench demonstrate that our method not only significantly improves decoding speed (1.6x-2.2x) but also reduces model hallucinations and exhibits strong generalization abilities.",
+      "authors": [
+        "Lei Li",
+        "Ze Zhao",
+        "Meng Li",
+        "Zhongwang Lun",
+        "Yi Yuan",
+        "Xingjing Lu",
+        "Zheng Wei",
+        "Jiang Bian",
+        "Zang Li"
+      ],
+      "published": "2026-03-16T12:45:34.000Z",
+      "link": "https://huggingface.co/papers/2603.15206",
+      "category": "AI",
       "upvotes": 3
     },
     {
@@ -314,26 +742,7 @@
       "published": "2026-03-13T07:39:35.000Z",
       "link": "https://huggingface.co/papers/2603.12743",
       "category": "concept customization",
-      "upvotes": 1
-    },
-    {
-      "id": "2603.15611",
-      "title": "Code-A1: Adversarial Evolving of Code LLM and Test LLM via Reinforcement Learning",
-      "summary": "Reinforcement learning for code generation relies on verifiable rewards from unit test pass rates. Yet high-quality test suites are scarce, existing datasets offer limited coverage, and static rewards fail to adapt as models improve. Recent self-play methods unify code and test generation in a single model, but face a inherent dilemma: white-box access leads to self-collusion where the model produces trivial tests for easy rewards, yet black-box restriction yields generic tests that miss implementation-specific bugs. We introduce Code-A1, an adversarial co-evolution framework that jointly optimizes a Code LLM and a Test LLM with opposing objectives. The Code LLM is rewarded for passing more tests, while the Test LLM is rewarded for exposing more defects. This architectural separation eliminates self-collusion risks and safely enables white-box test generation, where the Test LLM can inspect candidate code to craft targeted adversarial tests. We further introduce a Mistake Book mechanism for experience replay and a composite reward balancing test validity with adversarial difficulty. Experiments on Qwen2.5-Coder models demonstrate that Code-A1 achieves code generation performance matching or exceeding models trained on human-annotated tests, while significantly improving test generation capability.",
-      "authors": [
-        "Aozhe Wang",
-        "Yuchen Yan",
-        "Nan Zhou",
-        "Zhengxi Lu",
-        "Weiming Lu",
-        "Jun Xiao",
-        "Yueting Zhuang",
-        "Yongliang Shen"
-      ],
-      "published": "2026-03-16T17:58:13.000Z",
-      "link": "https://huggingface.co/papers/2603.15611",
-      "category": "AI",
-      "upvotes": 1
+      "upvotes": 3
     },
     {
       "id": "2603.13428",
@@ -358,7 +767,7 @@
       "published": "2026-03-13T03:20:40.000Z",
       "link": "https://huggingface.co/papers/2603.13428",
       "category": "AI",
-      "upvotes": 0
+      "upvotes": 3
     },
     {
       "id": "2603.14313",
@@ -370,6 +779,121 @@
       ],
       "published": "2026-03-15T10:07:28.000Z",
       "link": "https://huggingface.co/papers/2603.14313",
+      "category": "AI",
+      "upvotes": 3
+    },
+    {
+      "id": "2603.14645",
+      "title": "Spectrum Matching: a Unified Perspective for Superior Diffusability in Latent Diffusion",
+      "summary": "In this paper, we study the diffusability (learnability) of variational autoencoders (VAE) in latent diffusion. First, we show that pixel-space diffusion trained with an MSE objective is inherently biased toward learning low and mid spatial frequencies, and that the power-law power spectral density (PSD) of natural images makes this bias perceptually beneficial. Motivated by this result, we propose the Spectrum Matching Hypothesis: latents with superior diffusability should (i) follow a flattened power-law PSD (Encoding Spectrum Matching, ESM) and (ii) preserve frequency-to-frequency semantic correspondence through the decoder (Decoding Spectrum Matching, DSM). In practice, we apply ESM by matching the PSD between images and latents, and DSM via shared spectral masking with frequency-aligned reconstruction. Importantly, Spectrum Matching provides a unified view that clarifies prior observations of over-noisy or over-smoothed latents, and interprets several recent methods as special cases (e.g., VA-VAE, EQ-VAE). Experiments suggest that Spectrum Matching yields superior diffusion generation on CelebA and ImageNet datasets, and outperforms prior approaches. Finally, we extend the spectral view to representation alignment (REPA): we show that the directional spectral energy of the target representation is crucial for REPA, and propose a DoG-based method to further improve the performance of REPA. Our code is available https://github.com/forever208/SpectrumMatching.",
+      "authors": [
+        "Mang Ning",
+        "Mingxiao Li",
+        "Le Zhang",
+        "Lanmiao Liu",
+        "Matthew B. Blaschko",
+        "Albert Ali Salah",
+        "Itir Onal Ertugrul"
+      ],
+      "published": "2026-03-15T22:47:43.000Z",
+      "link": "https://huggingface.co/papers/2603.14645",
+      "category": "variational autoencoders",
+      "upvotes": 2
+    },
+    {
+      "id": "2603.14153",
+      "title": "Garments2Look: A Multi-Reference Dataset for High-Fidelity Outfit-Level Virtual Try-On with Clothing and Accessories",
+      "summary": "Virtual try-on (VTON) has advanced single-garment visualization, yet real-world fashion centers on full outfits with multiple garments, accessories, fine-grained categories, layering, and diverse styling, remaining beyond current VTON systems. Existing datasets are category-limited and lack outfit diversity. We introduce Garments2Look, the first large-scale multimodal dataset for outfit-level VTON, comprising 80K many-garments-to-one-look pairs across 40 major categories and 300+ fine-grained subcategories. Each pair includes an outfit with 3-12 reference garment images (Average 4.48), a model image wearing the outfit, and detailed item and try-on textual annotations. To balance authenticity and diversity, we propose a synthesis pipeline. It involves heuristically constructing outfit lists before generating try-on results, with the entire process subjected to strict automated filtering and human validation to ensure data quality. To probe task difficulty, we adapt SOTA VTON methods and general-purpose image editing models to establish baselines. Results show current methods struggle to try on complete outfits seamlessly and to infer correct layering and styling, leading to misalignment and artifacts.",
+      "authors": [
+        "Junyao Hu",
+        "Zhongwei Cheng",
+        "Waikeung Wong",
+        "Xingxing Zou"
+      ],
+      "published": "2026-03-14T23:30:32.000Z",
+      "link": "https://huggingface.co/papers/2603.14153",
+      "category": "AI",
+      "upvotes": 2
+    },
+    {
+      "id": "2603.13884",
+      "title": "SCoCCA: Multi-modal Sparse Concept Decomposition via Canonical Correlation Analysis",
+      "summary": "Interpreting the internal reasoning of vision-language models is essential for deploying AI in safety-critical domains. Concept-based explainability provides a human-aligned lens by representing a model's behavior through semantically meaningful components. However, existing methods are largely restricted to images and overlook the cross-modal interactions. Text-image embeddings, such as those produced by CLIP, suffer from a modality gap, where visual and textual features follow distinct distributions, limiting interpretability. Canonical Correlation Analysis (CCA) offers a principled way to align features from different distributions, but has not been leveraged for multi-modal concept-level analysis. We show that the objectives of CCA and InfoNCE are closely related, such that optimizing CCA implicitly optimizes InfoNCE, providing a simple, training-free mechanism to enhance cross-modal alignment without affecting the pre-trained InfoNCE objective. Motivated by this observation, we couple concept-based explainability with CCA, introducing Concept CCA (CoCCA), a framework that aligns cross-modal embeddings while enabling interpretable concept decomposition. We further extend it and propose Sparse Concept CCA (SCoCCA), which enforces sparsity to produce more disentangled and discriminative concepts, facilitating improved activation, ablation, and semantic manipulation. Our approach generalizes concept-based explanations to multi-modal embeddings and achieves state-of-the-art performance in concept discovery, evidenced by reconstruction and manipulation tasks such as concept ablation.",
+      "authors": [
+        "Ehud Gordon",
+        "Meir Yossef Levi",
+        "Guy Gilboa"
+      ],
+      "published": "2026-03-14T10:45:59.000Z",
+      "link": "https://huggingface.co/papers/2603.13884",
+      "category": "AI",
+      "upvotes": 2
+    },
+    {
+      "id": "2603.15614",
+      "title": "Tri-Prompting: Video Diffusion with Unified Control over Scene, Subject, and Motion",
+      "summary": "Recent video diffusion models have made remarkable strides in visual quality, yet precise, fine-grained control remains a key bottleneck that limits practical customizability for content creation. For AI video creators, three forms of control are crucial: (i) scene composition, (ii) multi-view consistent subject customization, and (iii) camera-pose or object-motion adjustment. Existing methods typically handle these dimensions in isolation, with limited support for multi-view subject synthesis and identity preservation under arbitrary pose changes. This lack of a unified architecture makes it difficult to support versatile, jointly controllable video. We introduce Tri-Prompting, a unified framework and two-stage training paradigm that integrates scene composition, multi-view subject consistency, and motion control. Our approach leverages a dual-condition motion module driven by 3D tracking points for background scenes and downsampled RGB cues for foreground subjects. To ensure a balance between controllability and visual realism, we further propose an inference ControlNet scale schedule. Tri-Prompting supports novel workflows, including 3D-aware subject insertion into any scenes and manipulation of existing subjects in an image. Experimental results demonstrate that Tri-Prompting significantly outperforms specialized baselines such as Phantom and DaS in multi-view subject identity, 3D consistency, and motion accuracy.",
+      "authors": [
+        "Zhenghong Zhou",
+        "Xiaohang Zhan",
+        "Zhiqin Chen",
+        "Soo Ye Kim",
+        "Nanxuan Zhao",
+        "Haitian Zheng",
+        "Qing Liu",
+        "He Zhang",
+        "Zhe Lin",
+        "Yuqian Zhou",
+        "Jiebo Luo"
+      ],
+      "published": "2026-03-16T17:59:05.000Z",
+      "link": "https://huggingface.co/papers/2603.15614",
+      "category": "video diffusion models",
+      "upvotes": 1
+    },
+    {
+      "id": "2603.13518",
+      "title": "VoXtream2: Full-stream TTS with dynamic speaking rate control",
+      "summary": "Full-stream text-to-speech (TTS) for interactive systems must start speaking with minimal delay while remaining controllable as text arrives incrementally. We present VoXtream2, a zero-shot full-stream TTS model with dynamic speaking-rate control that can be updated mid-utterance on the fly. VoXtream2 combines a distribution matching mechanism over duration states with classifier-free guidance across conditioning signals to improve controllability and synthesis quality. Prompt-text masking enables textless audio prompting, removing the need for prompt transcription. Across standard zero-shot benchmarks and a dedicated speaking-rate test set, VoXtream2 achieves competitive objective and subjective results against public baselines despite a smaller model and less training data. In full-stream mode, it runs 4 times faster than real time with 74 ms first-packet latency on a consumer GPU.",
+      "authors": [
+        "Nikita Torgashov",
+        "Gustav Eje Henter",
+        "Gabriel Skantze"
+      ],
+      "published": "2026-03-13T18:49:25.000Z",
+      "link": "https://huggingface.co/papers/2603.13518",
+      "category": "AI",
+      "upvotes": 1
+    },
+    {
+      "id": "2603.13962",
+      "title": "sebis at ArchEHR-QA 2026: How Much Can You Do Locally? Evaluating Grounded EHR QA on a Single Notebook",
+      "summary": "Clinical question answering over electronic health records (EHRs) can help clinicians and patients access relevant medical information more efficiently. However, many recent approaches rely on large cloud-based models, which are difficult to deploy in clinical environments due to privacy constraints and computational requirements. In this work, we investigate how far grounded EHR question answering can be pushed when restricted to a single notebook. We participate in all four subtasks of the ArchEHR-QA 2026 shared task and evaluate several approaches designed to run on commodity hardware. All experiments are conducted locally without external APIs or cloud infrastructure. Our results show that such systems can achieve competitive performance on the shared task leaderboards. In particular, our submissions perform above average in two subtasks, and we observe that smaller models can approach the performance of much larger systems when properly configured. These findings suggest that privacy-preserving EHR QA systems running fully locally are feasible with current models and commodity hardware. The source code is available at https://github.com/ibrahimey/ArchEHR-QA-2026.",
+      "authors": [
+        "Ibrahim Ebrar Yurt",
+        "Fabian Karl",
+        "Tejaswi Choppa",
+        "Florian Matthes"
+      ],
+      "published": "2026-03-14T14:17:55.000Z",
+      "link": "https://huggingface.co/papers/2603.13962",
+      "category": "AI",
+      "upvotes": 0
+    },
+    {
+      "id": "2603.15150",
+      "title": "SNCE: Geometry-Aware Supervision for Scalable Discrete Image Generation",
+      "summary": "Recent advancements in discrete image generation showed that scaling the VQ codebook size significantly improves reconstruction fidelity. However, training generative models with a large VQ codebook remains challenging, typically requiring larger model size and a longer training schedule. In this work, we propose Stochastic Neighbor Cross Entropy Minimization (SNCE), a novel training objective designed to address the optimization challenges of large-codebook discrete image generators. Instead of supervising the model with a hard one-hot target, SNCE constructs a soft categorical distribution over a set of neighboring tokens. The probability assigned to each token is proportional to the proximity between its code embedding and the ground-truth image embedding, encouraging the model to capture semantically meaningful geometric structure in the quantized embedding space. We conduct extensive experiments across class-conditional ImageNet-256 generation, large-scale text-to-image synthesis, and image editing tasks. Results show that SNCE significantly improves convergence speed and overall generation quality compared to standard cross-entropy objectives.",
+      "authors": [
+        "Shufan Li",
+        "Jiuxiang Gu",
+        "Kangning Liu",
+        "Zhe Lin",
+        "Aditya Grover",
+        "Jason Kuen"
+      ],
+      "published": "2026-03-16T11:44:11.000Z",
+      "link": "https://huggingface.co/papers/2603.15150",
       "category": "AI",
       "upvotes": 0
     }

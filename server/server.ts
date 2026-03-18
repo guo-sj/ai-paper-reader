@@ -33,6 +33,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../.env.local'), override: true });
 
 const app = express();
+app.set('etag', false);
 const PORT = Number(process.env.PORT || 3001);
 
 app.use(cors());
@@ -356,6 +357,7 @@ function computeFinalScore(
 /** Fetch papers from HuggingFace API, filter/sort, and return them. Does NOT touch cache. */
 const fetchFromHuggingFace = async () => {
     const todayKey = getTodayKey();
+    console.log(`[fetchFromHuggingFace] Starting fetch for ${todayKey}...`);
     const url = process.env.HF_API_BASE
         ? `${process.env.HF_API_BASE}/api/daily_papers`
         : 'https://huggingface.co/api/daily_papers';
@@ -441,9 +443,7 @@ const fetchAndAnalyzePapers = async (): Promise<void> => {
         throw new Error('论文分析服务未配置（缺少 OPENAI_API_KEY）');
     }
 
-    // Read categories config for prompt injection
     const config = await readCategoriesConfig();
-    const categoryIds = config.categories.map(c => c.id);
 
     // Load existing analyzed cache for today
     const existingCache = await readAnalyzedPapersCache();
@@ -465,7 +465,7 @@ const fetchAndAnalyzePapers = async (): Promise<void> => {
 
     if (toAnalyze.length > 0) {
         console.log(`[fetchAndAnalyzePapers] Analyzing ${toAnalyze.length} new papers (${alreadyAnalyzedIds.size} already cached)...`);
-        const analyses = await analyzeWithOpenAI(toAnalyze, apiKey, categoryIds);
+        const analyses = await analyzeWithOpenAI(toAnalyze, apiKey, config.categories);
         for (const p of toAnalyze) {
             existingById[p.id] = { ...p, analysis: analyses[p.id] };
         }
@@ -782,8 +782,7 @@ app.post('/api/analyze', async (req, res) => {
 
     try {
         const config = await readCategoriesConfig();
-        const categoryIds = config.categories.map((c: { id: string }) => c.id);
-        const result = await analyzeWithOpenAI(papers, apiKey, categoryIds);
+        const result = await analyzeWithOpenAI(papers, apiKey, config.categories);
         return res.json(result);
     } catch (error: any) {
         console.error('[/api/analyze] Error:', error);

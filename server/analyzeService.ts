@@ -3,7 +3,7 @@ import { PaperAnalysis } from '../types.js';
 
 const OPENAI_BASE = process.env.OPENAI_BASE_URL || 'https://api.gptplus5.com';
 const MODEL = 'gpt-4o';
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 5;
 const BATCH_DELAY_MS = 500;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -12,24 +12,41 @@ interface Paper {
     id: string;
     title: string;
     summary: string;
+    category?: string;
 }
 
-function buildPrompt(batch: Paper[], categoryIds: string[]): string {
-    const categoryList = categoryIds.join(', ');
+interface CategoryDef {
+    id: string;
+    label: string;
+    aliases: string[];
+}
+
+export function mapHFCategory(hfCategory: string, categories: CategoryDef[]): string {
+    if (!hfCategory) return 'other';
+    const lower = hfCategory.toLowerCase();
+    for (const cat of categories) {
+        if (cat.id === 'other') continue;
+        const terms = [cat.label, ...cat.aliases];
+        for (const term of terms) {
+            if (lower.includes(term.toLowerCase())) {
+                return cat.id;
+            }
+        }
+    }
+    return 'other';
+}
+
+function buildPrompt(batch: Paper[]): string {
     return `
 请分析以下来自 arXiv 的最新 AI 研究论文。
 请务必使用 **中文** 提供 JSON 格式的结构化分析。
-必须返回一个 JSON 数组，每个元素包含字段：paperId（与下方 ID 一致）、geminiSummary、keyInnovation、potentialImpact、relevanceScore（1-10 的数字）、categories（字符串数组）、categoryScores（对象）。
+必须返回一个 JSON 数组，每个元素包含字段：paperId（与下方 ID 一致）、geminiSummary、keyInnovation、potentialImpact、relevanceScore（1-10 的数字）。
 
 分析重点包括：
 1. 核心方法论的简洁摘要（geminiSummary）。
 2. 与之前工作相比的关键创新点（keyInnovation）。
 3. 对 AI 领域的长期潜在影响（potentialImpact）。
 4. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
-5. 从以下预定义类别中，选出该论文最相关的 1-3 个类别，并给出每个类别的相关度评分（1-10）。
-   可选类别 ID：[${categoryList}]
-   返回：categories（选中类别 ID 的字符串数组）、categoryScores（对象，key 为类别 ID，value 为 1-10 评分）。
-   不相关的类别不需要出现在 categoryScores 中。
 
 待分析论文：
 ${batch.map((p) => `
@@ -40,11 +57,20 @@ ID: ${p.id}
 `).join('\n')}
 
 请直接返回 JSON 数组，不要其他说明。例如：
-[{"paperId":"...","geminiSummary":"...","keyInnovation":"...","potentialImpact":"...","relevanceScore":8,"categories":["attention","llm"],"categoryScores":{"attention":9,"llm":6}}, ...]
+[{"paperId":"...","geminiSummary":"...","keyInnovation":"...","potentialImpact":"...","relevanceScore":8}, ...]
 `.trim();
 }
 
-async function analyzeBatch(apiKey: string, batch: Paper[], categoryIds: string[]): Promise<Record<string, PaperAnalysis>> {
+async function analyzeBatch(apiKey: string, batch: Paper[], categories: CategoryDef[], batchIndex: number, totalBatches: number): Promise<Record<string, PaperAnalysis>> {
+    console.log(`[OpenAI] Batch ${batchIndex}/${totalBatches}: sending ${batch.length} papers to ${OPENAI_BASE} (model: ${MODEL})`);
+    batch.forEach(p => console.log(`  - ${p.id}: ${p.title.slice(0, 60)}... [hfCategory: ${p.category ?? 'N/A'}]`));
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+        controller.abort();
+        console.error(`[OpenAI] Batch ${batchIndex}/${totalBatches}: request timed out after 120s`);
+    }, 120_000);
+
     const res = await fetch(`${OPENAI_BASE}/v1/chat/completions`, {
         method: 'POST',
         headers: {
@@ -53,13 +79,14 @@ async function analyzeBatch(apiKey: string, batch: Paper[], categoryIds: string[
         },
         body: JSON.stringify({
             model: MODEL,
-            messages: [{ role: 'user', content: buildPrompt(batch, categoryIds) }],
-            response_format: { type: 'json_object' },
-            max_tokens: 8192,
+            messages: [{ role: 'user', content: buildPrompt(batch) }],
+            max_tokens: 16384,
         }),
-    });
+        signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
 
     if (!res.ok) {
+        console.error(`[OpenAI] Batch ${batchIndex}/${totalBatches}: HTTP ${res.status}`);
         const errText = await res.text();
         let message = errText;
         try {
@@ -79,13 +106,18 @@ async function analyzeBatch(apiKey: string, batch: Paper[], categoryIds: string[
         throw err;
     }
 
-    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const content = data.choices?.[0]?.message?.content?.trim() || '{}';
+    console.log(`[OpenAI] Batch ${batchIndex}/${totalBatches}: response OK, parsing...`);
+    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string }, finish_reason?: string }> };
+    const finishReason = data.choices?.[0]?.finish_reason;
+    const rawContent = data.choices?.[0]?.message?.content?.trim() || '[]';
+    const content = rawContent.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+    console.log(`[OpenAI] Batch ${batchIndex}/${totalBatches}: finish_reason=${finishReason}, content length=${content.length}, tail: ...${content.slice(-80)}`);
 
     let parsed: unknown;
     try {
         parsed = JSON.parse(content);
     } catch {
+        console.error(`[OpenAI] Batch ${batchIndex}/${totalBatches}: invalid JSON response:`, content.slice(0, 200));
         throw new Error('OpenAI returned invalid JSON');
     }
 
@@ -98,25 +130,25 @@ async function analyzeBatch(apiKey: string, batch: Paper[], categoryIds: string[
     } else {
         arr = [];
     }
-    console.log(`[OpenAI] parsed ${arr.length} analyses`);
+    console.log(`[OpenAI] Batch ${batchIndex}/${totalBatches}: parsed ${arr.length} analyses`);
+    if (arr.length !== batch.length) {
+        console.warn(`[OpenAI] Batch ${batchIndex}/${totalBatches}: expected ${batch.length} results, got ${arr.length}`);
+    }
 
     const record: Record<string, PaperAnalysis> = {};
     for (const a of arr as Record<string, unknown>[]) {
         const paperId = a?.paperId as string | undefined;
         if (!paperId) continue;
+        const paper = batch.find(p => p.id === paperId);
+        const matchedCategory = mapHFCategory(paper?.category ?? '', categories);
         record[paperId] = {
             paperId,
             geminiSummary: String(a.geminiSummary ?? ''),
             keyInnovation: String(a.keyInnovation ?? ''),
             potentialImpact: String(a.potentialImpact ?? ''),
             relevanceScore: Number(a.relevanceScore) || 0,
-            categories: Array.isArray(a.categories) ? (a.categories as string[]) : [],
-            categoryScores: (a.categoryScores && typeof a.categoryScores === 'object' && !Array.isArray(a.categoryScores))
-                ? Object.fromEntries(
-                    Object.entries(a.categoryScores as Record<string, unknown>)
-                        .map(([k, v]) => [k, Number(v) || 0])
-                  )
-                : {},
+            categories: [matchedCategory],
+            categoryScores: { [matchedCategory]: 10 },
         };
     }
     return record;
@@ -133,14 +165,15 @@ function chunk<T>(arr: T[], size: number): T[][] {
 export async function analyzeWithOpenAI(
     papers: Paper[],
     apiKey: string,
-    categoryIds: string[] = []
+    categories: CategoryDef[] = []
 ): Promise<Record<string, PaperAnalysis>> {
     const batches = chunk(papers, BATCH_SIZE);
     const merged: Record<string, PaperAnalysis> = {};
+    console.log(`[OpenAI] Starting analysis: ${papers.length} papers → ${batches.length} batch(es), BATCH_SIZE=${BATCH_SIZE}`);
 
     for (let i = 0; i < batches.length; i++) {
         try {
-            const result = await analyzeBatch(apiKey, batches[i], categoryIds);
+            const result = await analyzeBatch(apiKey, batches[i], categories, i + 1, batches.length);
             Object.assign(merged, result);
         } catch (error) {
             console.error(`[OpenAI] Batch ${i + 1}/${batches.length} failed:`, error);
@@ -151,5 +184,6 @@ export async function analyzeWithOpenAI(
         if (i < batches.length - 1) await delay(BATCH_DELAY_MS);
     }
 
+    console.log(`[OpenAI] Analysis complete: ${Object.keys(merged).length}/${papers.length} papers analyzed`);
     return merged;
 }
