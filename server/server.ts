@@ -1010,16 +1010,27 @@ async function sendDailyEmails(): Promise<void> {
         return;
     }
 
-    const emails = await listEmails();
+    const subscribers = await listSubscribers();
     const startTime = Date.now();
     const signal = { aborted: false };
     let connFailCount = 0;
 
-    const rawResults = await runWithConcurrency(emails, EMAIL_CONCURRENCY, async (email) => {
-        const personalizedHtml = buildDailyEmailHtml(analyzed.papers, email);
-        const unsubToken = generateUnsubscribeToken(email);
-        const unsubUrl = `${BASE_URL}/api/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubToken}`;
-        const result = await sendEmail(email, getDailyEmailSubject(), personalizedHtml, {
+    const rawResults = await runWithConcurrency(subscribers, EMAIL_CONCURRENCY, async (subscriber) => {
+        const papersForSubscriber = (!subscriber.categories || subscriber.categories.length === 0)
+            ? papersWithAnalysis
+            : papersWithAnalysis.filter((p) =>
+                p.analysis?.categories?.some((cat) => subscriber.categories!.includes(cat))
+              );
+
+        if (papersForSubscriber.length === 0) {
+            // No matching papers — skip this subscriber silently
+            return { success: true, email: subscriber.email };
+        }
+
+        const personalizedHtml = buildDailyEmailHtml(papersForSubscriber, subscriber.email);
+        const unsubToken = generateUnsubscribeToken(subscriber.email);
+        const unsubUrl = `${BASE_URL}/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}&token=${unsubToken}`;
+        const result = await sendEmail(subscriber.email, getDailyEmailSubject(), personalizedHtml, {
             'List-Unsubscribe': `<${unsubUrl}>`,
             'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
         });
@@ -1036,7 +1047,7 @@ async function sendDailyEmails(): Promise<void> {
     }, signal);
 
     const results: SendEmailResult[] = rawResults.map((r, i) =>
-        r ?? { success: false, email: emails[i], error: 'Skipped: SMTP unreachable' }
+        r ?? { success: false, email: subscribers[i].email, error: 'Skipped: SMTP unreachable' }
     );
 
     const succeeded = results.filter(r => r.success);
@@ -1051,7 +1062,7 @@ async function sendDailyEmails(): Promise<void> {
     await appendEmailLog({
         timestamp: new Date().toISOString(),
         dateKey: todayKey,
-        totalSubscribers: emails.length,
+        totalSubscribers: subscribers.length,
         succeeded: succeeded.length,
         failed: failed.length,
         durationMs,
