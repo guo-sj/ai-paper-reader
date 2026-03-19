@@ -34,18 +34,21 @@ export interface StoredSubscriber {
 
 ### Token format change
 
-Current: `email|timestamp|sig`
-New: `base64(email|timestamp|categoriesJson)|sig`
+Current: `base64url(JSON({ payload: JSON({email, ts}), sig }))`
+New: `base64url(JSON({ payload: JSON({email, ts, categories}), sig }))`
 
-- `categoriesJson` = JSON.stringify of the categories array (e.g. `["attention","llm"]` or `[]`)
-- Signature still uses HMAC-SHA256 over the base64 payload
+- `categories` = string array (e.g. `["attention","llm"]` or `[]`)
+- Signature is HMAC-SHA256 over the `payload` string (same as current)
+- `generateConfirmToken` and `verifyConfirmToken` in `server/server.ts` both need updating
 
 ### `POST /api/subscribe`
 
 - Accepts `{ email: string, categories?: string[] }`
-- Validates category IDs against known categories (ignores unknown IDs)
+- Validates category IDs against known categories; unknown IDs are silently filtered out
+- If all submitted IDs are unknown, the result is `[]` which is stored and treated as "all categories" — the user ends up receiving all papers (acceptable tradeoff; no error returned)
 - Encodes email + timestamp + categories into token
 - Sends confirmation email (unchanged)
+- Note: if email is already subscribed and user re-subscribes after the rate-limit window, a new token is generated and sent, but `addSubscriber` will throw `EmailAlreadySubscribedError` on confirmation — the new categories in the token are silently discarded. This is intentional; updating categories via re-subscribe is out of scope.
 
 ### `GET /api/confirm-subscription`
 
@@ -58,9 +61,14 @@ New: `base64(email|timestamp|categoriesJson)|sig`
 addSubscriber(email: string, categories?: string[]): Promise<void>
 ```
 
+- Store `categories` as-is (empty array `[]` is stored as `[]`, not normalized to `undefined`)
+- Both `undefined` and `[]` are treated as "all categories" at read time
+- `readStoreUnlocked` sanitization must be updated to preserve the `categories` field: accept `undefined` (pass through) or a valid `string[]`; treat any non-array value as `undefined` (all categories)
+- `POST /api/admin/subscribers` calls `addSubscriber(email)` without categories — admin-added subscribers will always have `categories: undefined` (all categories), which is correct
+
 ## Email Sending
 
-`sendDailyEmails` filters papers per subscriber:
+`sendDailyEmails` must switch from `listEmails()` to `listSubscribers()` to access per-subscriber categories, then filter papers per subscriber:
 
 ```
 for each subscriber:
@@ -73,16 +81,19 @@ for each subscriber:
   else: send personalized email with filtered papers
 ```
 
-Intersection check: `paper.analysis.categories` (array of category IDs assigned by AI) must share at least one element with `subscriber.categories`.
+Intersection check: `paper.analysis.categories` (array of category IDs assigned by AI, field confirmed in `PaperAnalysis` type in `types.ts`) must share at least one element with `subscriber.categories`.
+
+After the refactor, the SMTP-abort fallback that back-fills skipped results must use `subscribers[i].email` (not `emails[i]`). The `totalSubscribers` log field should use `subscribers.length`.
 
 ## Frontend
 
 ### Subscribe form (index.tsx)
 
 1. Fetch category list from existing `GET /api/categories` on mount
-2. Render checkbox list below the email input
-3. Default: all unchecked (submits as empty array = all categories)
-4. On submit: include selected category IDs in request body
+2. If fetch fails, hide the checkbox section and submit with no categories (all papers)
+3. Render checkbox list below the email input
+4. Default: all unchecked (submits as empty array = all categories)
+5. On submit: include selected category IDs in request body
 
 ```ts
 POST /api/subscribe
@@ -93,11 +104,12 @@ POST /api/subscribe
 
 | File | Change |
 |------|--------|
-| `server/subscriberStoreFile.ts` | Add `categories` to `StoredSubscriber`, update `addSubscriber` signature |
-| `server/server.ts` | Update token encode/decode, `/api/subscribe`, `/api/confirm-subscription`, `sendDailyEmails` |
+| `server/subscriberStoreFile.ts` | Add `categories` to `StoredSubscriber`; update `addSubscriber` signature; fix `readStoreUnlocked` sanitization to preserve `categories` field |
+| `server/server.ts` | Update `generateConfirmToken`/`verifyConfirmToken` to include categories in payload; update `/api/subscribe` to accept and validate categories; update `sendDailyEmails` to use `listSubscribers()` and filter per subscriber |
 | `index.tsx` | Add category checkboxes to subscribe form |
 
 ## Out of Scope
 
 - Modifying subscribed categories after initial signup
-- Admin UI for managing subscriber categories
+- Admin UI for managing subscriber categories (note: `GET /api/admin/subscribers` currently omits `categories` from response — low-priority follow-up)
+- Re-subscribe with different categories: if email is already subscribed, the existing flow returns a generic message and does nothing (intentional)
