@@ -794,12 +794,26 @@ app.post('/api/analyze', async (req, res) => {
 const SUBSCRIBE_PENDING_MSG = 'If this email is valid, a confirmation email has been sent. Please check your inbox.';
 
 app.post('/api/subscribe', async (req, res) => {
-    const { email } = req.body;
+    const { email, categories } = req.body;
     if (!email || !isValidEmail(email)) {
         return res.status(400).json({ error: 'Invalid email address' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    // Validate and filter categories
+    let validatedCategories: string[] = [];
+    if (Array.isArray(categories) && categories.length > 0) {
+        try {
+            const config = await readCategoriesConfig();
+            const knownIds = new Set(config.categories.map((c) => c.id));
+            validatedCategories = (categories as unknown[])
+                .filter((c): c is string => typeof c === 'string' && knownIds.has(c));
+        } catch {
+            // If categories.json fails to load, treat as all categories
+            validatedCategories = [];
+        }
+    }
 
     // Rate limit: same email only once per 5 minutes (also prevents using us as spam relay)
     const lastRequest = subscribeRateLimit.get(normalizedEmail);
@@ -814,7 +828,7 @@ app.post('/api/subscribe', async (req, res) => {
         return res.json({ message: SUBSCRIBE_PENDING_MSG });
     }
 
-    const token = generateConfirmToken(normalizedEmail);
+    const token = generateConfirmToken(normalizedEmail, validatedCategories);
     const confirmUrl = `${BASE_URL}/api/confirm-subscription?token=${token}`;
 
     await sendEmail(
