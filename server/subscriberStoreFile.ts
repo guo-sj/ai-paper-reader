@@ -6,6 +6,7 @@ export interface StoredSubscriber {
   id: number;
   email: string;
   subscribedAt: string; // ISO string
+  categories?: string[]; // undefined or [] = all categories
 }
 
 interface StoreFileShape {
@@ -71,6 +72,7 @@ async function readStoreUnlocked(filePath: string): Promise<StoreFileShape> {
       id: Number(s.id) || 0,
       email: String(s.email),
       subscribedAt: typeof s.subscribedAt === 'string' && s.subscribedAt ? s.subscribedAt : nowIso(),
+      categories: Array.isArray(s.categories) ? (s.categories as string[]) : undefined,
     }))
     .filter((s) => s.id > 0 && s.email.includes('@'));
 
@@ -123,7 +125,7 @@ export async function listEmails(): Promise<string[]> {
   return subs.map((s) => s.email);
 }
 
-export async function addSubscriber(email: string): Promise<void> {
+export async function addSubscriber(email: string, categories?: string[]): Promise<void> {
   return enqueue(async () => {
     const filePath = resolveStorePath();
     const store = await readStoreUnlocked(filePath);
@@ -134,7 +136,7 @@ export async function addSubscriber(email: string): Promise<void> {
 
     const id = store.nextId;
     store.nextId += 1;
-    store.subscribers.push({ id, email: norm, subscribedAt: nowIso() });
+    store.subscribers.push({ id, email: norm, subscribedAt: nowIso(), categories });
 
     await atomicWriteJson(filePath, store);
   });
