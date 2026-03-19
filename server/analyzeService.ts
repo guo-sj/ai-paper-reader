@@ -36,17 +36,23 @@ export function mapHFCategory(hfCategory: string, categories: CategoryDef[]): st
     return 'other';
 }
 
-function buildPrompt(batch: Paper[]): string {
+function buildPrompt(batch: Paper[], categories: CategoryDef[]): string {
+    const categoryList = categories.map(c => `${c.id}（${c.label}）`).join(', ');
     return `
 请分析以下来自 arXiv 的最新 AI 研究论文。
 请务必使用 **中文** 提供 JSON 格式的结构化分析。
-必须返回一个 JSON 数组，每个元素包含字段：paperId（与下方 ID 一致）、geminiSummary、keyInnovation、potentialImpact、relevanceScore（1-10 的数字）。
+必须返回一个 JSON 数组，每个元素包含字段：paperId（与下方 ID 一致）、geminiSummary、keyInnovation、potentialImpact、relevanceScore（1-10 的数字）、categories（字符串数组）、categoryScores（对象）。
 
 分析重点包括：
 1. 核心方法论的简洁摘要（geminiSummary）。
 2. 与之前工作相比的关键创新点（keyInnovation）。
 3. 对 AI 领域的长期潜在影响（potentialImpact）。
 4. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
+5. 从以下预定义类别中，选出该论文最相关的 1-3 个类别，并给出每个类别的相关度评分（1-10）。
+   可选类别 ID：[${categoryList}]
+   每篇论文会附带 HF 平台的原始分类标签，可作为参考，但请以论文标题和摘要内容为主要判断依据。
+   返回：categories（选中类别 ID 的字符串数组）、categoryScores（对象，key 为类别 ID，value 为 1-10 评分）。
+   注意：categories 中的值必须来自上方可选类别 ID，不得自行创造新类别。
 
 待分析论文：
 ${batch.map((p) => `
@@ -54,10 +60,11 @@ ${batch.map((p) => `
 ID: ${p.id}
 标题: ${p.title}
 摘要: ${p.summary}
+HF 分类参考: ${p.category || '无'}
 `).join('\n')}
 
 请直接返回 JSON 数组，不要其他说明。例如：
-[{"paperId":"...","geminiSummary":"...","keyInnovation":"...","potentialImpact":"...","relevanceScore":8}, ...]
+[{"paperId":"...","geminiSummary":"...","keyInnovation":"...","potentialImpact":"...","relevanceScore":8,"categories":["attention","llm"],"categoryScores":{"attention":9,"llm":6}}, ...]
 `.trim();
 }
 
@@ -79,7 +86,7 @@ async function analyzeBatch(apiKey: string, batch: Paper[], categories: Category
         },
         body: JSON.stringify({
             model: MODEL,
-            messages: [{ role: 'user', content: buildPrompt(batch) }],
+            messages: [{ role: 'user', content: buildPrompt(batch, categories) }],
             max_tokens: 16384,
         }),
         signal: controller.signal,
@@ -139,16 +146,23 @@ async function analyzeBatch(apiKey: string, batch: Paper[], categories: Category
     for (const a of arr as Record<string, unknown>[]) {
         const paperId = a?.paperId as string | undefined;
         if (!paperId) continue;
+        const llmCategories = Array.isArray(a.categories) ? a.categories.map(String).filter(id => categories.some(c => c.id === id)) : [];
+        const llmCategoryScores = (a.categoryScores && typeof a.categoryScores === 'object' && !Array.isArray(a.categoryScores))
+            ? Object.fromEntries(Object.entries(a.categoryScores as Record<string, unknown>).filter(([k]) => categories.some(c => c.id === k)).map(([k, v]) => [k, Number(v) || 0]))
+            : {};
+        // fallback to mapHFCategory if LLM returned no valid categories
         const paper = batch.find(p => p.id === paperId);
-        const matchedCategory = mapHFCategory(paper?.category ?? '', categories);
+        const hfMapped = mapHFCategory(paper?.category ?? '', categories);
+        const finalCategories = llmCategories.length > 0 ? llmCategories : [hfMapped];
+        const finalCategoryScores = llmCategories.length > 0 ? llmCategoryScores : { [hfMapped]: 10 };
         record[paperId] = {
             paperId,
             geminiSummary: String(a.geminiSummary ?? ''),
             keyInnovation: String(a.keyInnovation ?? ''),
             potentialImpact: String(a.potentialImpact ?? ''),
             relevanceScore: Number(a.relevanceScore) || 0,
-            categories: [matchedCategory],
-            categoryScores: { [matchedCategory]: 10 },
+            categories: finalCategories,
+            categoryScores: finalCategoryScores,
         };
     }
     return record;
