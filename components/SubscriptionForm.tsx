@@ -7,10 +7,11 @@ interface CategoryInfo {
 
 const SubscriptionForm: React.FC = () => {
     const [email, setEmail] = useState('');
-    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [message, setMessage] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+    const [errorMessage, setErrorMessage] = useState('');
     const [categories, setCategories] = useState<CategoryInfo[]>([]);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [showToast, setShowToast] = useState(false);
 
     useEffect(() => {
         fetch('/api/categories')
@@ -18,9 +19,7 @@ const SubscriptionForm: React.FC = () => {
             .then((data) => {
                 if (Array.isArray(data.categories)) setCategories(data.categories);
             })
-            .catch(() => {
-                // fetch failed — hide checkboxes, submit with no categories (all papers)
-            });
+            .catch(() => {});
     }, []);
 
     const toggleCategory = (id: string) => {
@@ -34,6 +33,7 @@ const SubscriptionForm: React.FC = () => {
         if (!email) return;
 
         setStatus('loading');
+        setErrorMessage('');
         try {
             const res = await fetch('/api/subscribe', {
                 method: 'POST',
@@ -43,22 +43,28 @@ const SubscriptionForm: React.FC = () => {
             const data = await res.json();
 
             if (res.ok) {
-                setStatus('success');
-                setMessage(data.message || 'Check your inbox for a confirmation email.');
                 setEmail('');
                 setSelectedCategories([]);
+                setStatus('idle');
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 2000);
             } else {
                 setStatus('error');
-                setMessage(data.error || 'Subscription failed.');
+                setErrorMessage(data.error || 'Subscription failed.');
             }
         } catch {
             setStatus('error');
-            setMessage('Network error. Please try again.');
+            setErrorMessage('Network error. Please try again.');
         }
     };
 
     return (
         <div className="mt-4 sm:mt-0">
+            {showToast && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white text-sm font-medium px-5 py-3 rounded-lg shadow-lg">
+                    订阅成功
+                </div>
+            )}
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2">
                 <input
                     type="email"
@@ -66,24 +72,20 @@ const SubscriptionForm: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
-                    disabled={status === 'loading' || status === 'success'}
+                    disabled={status === 'loading'}
                 />
                 <button
                     type="submit"
-                    disabled={status === 'loading' || status === 'success'}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors ${
-                        status === 'success'
-                            ? 'bg-green-600 hover:bg-green-700'
-                            : 'bg-blue-600 hover:bg-blue-700'
-                    } disabled:opacity-50`}
+                    disabled={status === 'loading'}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >
-                    {status === 'loading' ? '...' : status === 'success' ? 'Subscribed!' : 'Subscribe'}
+                    {status === 'loading' ? '...' : 'Subscribe'}
                 </button>
                 {status === 'error' && (
-                    <p className="text-red-500 text-xs mt-1 sm:mt-0 sm:ml-2 self-center">{message}</p>
+                    <p className="text-red-500 text-xs mt-1 sm:mt-0 sm:ml-2 self-center">{errorMessage}</p>
                 )}
             </form>
-            {categories.length > 0 && status !== 'success' && (
+            {categories.length > 0 && (
                 <div className="mt-3">
                     <p className="text-xs text-slate-500 mb-2">
                         Subscribe to specific categories (leave all unchecked to receive everything):

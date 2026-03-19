@@ -12,7 +12,6 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import {
     addSubscriber,
-    listEmails,
     listSubscribers,
     removeSubscriberByEmail,
     removeSubscriberById,
@@ -167,36 +166,6 @@ function requireAdminAuth(req: express.Request, res: express.Response, next: exp
 }
 
 const UNSUBSCRIBE_SECRET = process.env.UNSUBSCRIBE_SECRET || ADMIN_SESSION_SECRET;
-const CONFIRM_SECRET = process.env.CONFIRM_SECRET || ADMIN_SESSION_SECRET;
-const CONFIRM_TOKEN_MAX_AGE_S = 24 * 60 * 60; // 24 hours
-
-function generateConfirmToken(email: string, categories: string[] = []): string {
-    const ts = Math.floor(Date.now() / 1000);
-    const payload = JSON.stringify({ email, ts, categories });
-    const sig = crypto.createHmac('sha256', CONFIRM_SECRET).update(payload).digest('hex');
-    return Buffer.from(JSON.stringify({ payload, sig })).toString('base64url');
-}
-
-function verifyConfirmToken(token: string): { email: string; categories: string[] } | null {
-    try {
-        const outer = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
-        const { payload, sig } = outer;
-        if (!payload || !sig) return null;
-
-        const expectedSig = crypto.createHmac('sha256', CONFIRM_SECRET).update(payload).digest('hex');
-        const bufSig = Buffer.from(sig);
-        const bufExpected = Buffer.from(expectedSig);
-        if (bufSig.length !== bufExpected.length || !crypto.timingSafeEqual(bufSig, bufExpected)) {
-            return null;
-        }
-
-        const { email, ts, categories } = JSON.parse(payload);
-        if (Date.now() / 1000 - ts > CONFIRM_TOKEN_MAX_AGE_S) return null;
-        return { email: email as string, categories: Array.isArray(categories) ? categories : [] };
-    } catch {
-        return null;
-    }
-}
 
 // Rate limit for /api/subscribe: same email can only request once per 5 minutes
 const SUBSCRIBE_RATE_LIMIT_MS = 5 * 60 * 1000;
@@ -627,6 +596,7 @@ app.get('/api/admin/subscribers', requireAdminAuth, async (req, res) => {
                 id: s.id,
                 email: s.email,
                 subscribed_at: s.subscribedAt,
+                categories: s.categories ?? [],
             })),
         });
     } catch (error) {
@@ -790,9 +760,6 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
-// Generic response used for all outcomes to prevent email enumeration
-const SUBSCRIBE_PENDING_MSG = 'If this email is valid, a confirmation email has been sent. Please check your inbox.';
-
 app.post('/api/subscribe', async (req, res) => {
     const { email, categories } = req.body;
     if (!email || !isValidEmail(email)) {
@@ -801,10 +768,10 @@ app.post('/api/subscribe', async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Rate limit: same email only once per 5 minutes (also prevents using us as spam relay)
+    // Rate limit: same email only once per 5 minutes
     const lastRequest = subscribeRateLimit.get(normalizedEmail);
     if (lastRequest && Date.now() - lastRequest < SUBSCRIBE_RATE_LIMIT_MS) {
-        return res.json({ message: SUBSCRIBE_PENDING_MSG });
+        return res.status(429).json({ error: '请求过于频繁，请稍后再试。' });
     }
     subscribeRateLimit.set(normalizedEmail, Date.now());
 
@@ -817,82 +784,20 @@ app.post('/api/subscribe', async (req, res) => {
             validatedCategories = (categories as unknown[])
                 .filter((c): c is string => typeof c === 'string' && knownIds.has(c));
         } catch {
-            // If categories.json fails to load, treat as all categories
             validatedCategories = [];
         }
     }
 
-    // Check if already subscribed — return same generic response to avoid email enumeration
-    const existingEmails = await listEmails();
-    if (existingEmails.includes(normalizedEmail)) {
-        return res.json({ message: SUBSCRIBE_PENDING_MSG });
-    }
-
-    const token = generateConfirmToken(normalizedEmail, validatedCategories);
-    const confirmUrl = `${BASE_URL}/api/confirm-subscription?token=${token}`;
-
-    await sendEmail(
-        normalizedEmail,
-        'Confirm your AI Insight subscription',
-        `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-            <h2>Confirm Subscription</h2>
-            <p>Click the button below to confirm your subscription to daily AI paper updates:</p>
-            <p><a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:white;text-decoration:none;border-radius:6px;">Confirm Subscription</a></p>
-            <p style="color:#999;font-size:12px;">This link expires in 24 hours. If you didn't request this, you can safely ignore this email.</p>
-        </div>`
-    );
-
-    console.log(`[subscribe] Confirmation email sent to ${normalizedEmail}`);
-    res.json({ message: SUBSCRIBE_PENDING_MSG });
-});
-
-// GET: verify confirmation token and add subscriber
-app.get('/api/confirm-subscription', async (req, res) => {
-    const { token } = req.query;
-    if (!token || typeof token !== 'string') {
-        return res.status(400).send('<p>Invalid confirmation link.</p>');
-    }
-
-    const verified = verifyConfirmToken(token);
-    if (!verified) {
-        return res.status(400).send(`
-            <html><body style="font-family: sans-serif; max-width: 400px; margin: 60px auto; text-align: center;">
-                <h2>Link Expired</h2>
-                <p>This confirmation link is invalid or has expired. Please subscribe again.</p>
-            </body></html>
-        `);
-    }
-
-    const { email, categories } = verified;
-
     try {
-        await addSubscriber(email, categories);
-        console.log(`[confirm] New subscriber confirmed: ${email}`);
-        await sendEmail(
-            email,
-            'Welcome to AI Insight',
-            `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-                <h2>You're subscribed!</h2>
-                <p>You will receive daily AI paper digests every morning.</p>
-            </div>`
-        );
-        res.send(`
-            <html><body style="font-family: sans-serif; max-width: 400px; margin: 60px auto; text-align: center;">
-                <h2>Subscription Confirmed!</h2>
-                <p>You will receive daily AI paper digests. Welcome aboard!</p>
-            </body></html>
-        `);
+        await addSubscriber(normalizedEmail, validatedCategories);
+        console.log(`[subscribe] New subscriber: ${normalizedEmail}`);
+        res.json({ message: '订阅成功' });
     } catch (error: any) {
         if (error instanceof EmailAlreadySubscribedError) {
-            return res.send(`
-                <html><body style="font-family: sans-serif; max-width: 400px; margin: 60px auto; text-align: center;">
-                    <h2>Already Subscribed</h2>
-                    <p>This email is already subscribed.</p>
-                </body></html>
-            `);
+            return res.status(409).json({ error: '该邮箱已订阅。' });
         }
-        console.error('Error confirming subscription:', error);
-        res.status(500).send('<p>Server error. Please try again.</p>');
+        console.error('Error subscribing:', error);
+        res.status(500).json({ error: 'Server error. Please try again.' });
     }
 });
 

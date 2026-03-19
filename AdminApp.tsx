@@ -6,6 +6,7 @@ interface Subscriber {
   id: number;
   email: string;
   subscribed_at: string;
+  categories: string[];
 }
 
 type View = 'login' | 'dashboard';
@@ -379,6 +380,9 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                       Subscribed At
                     </th>
                     <th className="py-2 pr-4 font-medium text-slate-600">
+                      Categories
+                    </th>
+                    <th className="py-2 pr-4 font-medium text-slate-600">
                       Actions
                     </th>
                   </tr>
@@ -393,6 +397,13 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                       <td className="py-2 pr-4 text-slate-800">{s.email}</td>
                       <td className="py-2 pr-4 text-slate-600">
                         {new Date(s.subscribed_at).toLocaleString()}
+                      </td>
+                      <td className="py-2 pr-4 text-slate-600">
+                        {s.categories.length === 0 ? (
+                          <span className="text-slate-400">全部</span>
+                        ) : (
+                          s.categories.join(', ')
+                        )}
                       </td>
                       <td className="py-2 pr-4">
                         <button

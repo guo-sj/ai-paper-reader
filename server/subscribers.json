@@ -1,11 +1,27 @@
 {
   "version": 1,
-  "nextId": 4,
+  "nextId": 9,
   "subscribers": [
     {
-      "id": 3,
+      "id": 7,
       "email": "515878133@qq.com",
-      "subscribedAt": "2026-02-26T13:30:19.489Z"
+      "subscribedAt": "2026-03-19T06:41:46.171Z",
+      "categories": [
+        "video",
+        "3d",
+        "speech"
+      ]
+    },
+    {
+      "id": 8,
+      "email": "guoshijie10@huawei.com",
+      "subscribedAt": "2026-03-19T06:42:17.251Z",
+      "categories": [
+        "rag",
+        "code",
+        "agent",
+        "multimodal"
+      ]
     }
   ]
 }
