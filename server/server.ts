@@ -679,7 +679,15 @@ app.post('/api/admin/send-test-email', requireAdminAuth, async (req, res) => {
         if (!analyzed || analyzed.papers.length === 0) {
             return res.status(503).json({ error: 'analyze_papers_result.json 不存在或为空，请先触发论文获取与分析' });
         }
-        const papers = analyzed.papers;
+        const papersWithAnalysis = analyzed.papers.filter((p) => p.analysis);
+        const subscribers = await listSubscribers();
+        const subscriber = subscribers.find((s) => s.email === email.trim().toLowerCase());
+        const subscriberCategories = subscriber?.categories;
+        const papers = (!subscriberCategories || subscriberCategories.length === 0)
+            ? papersWithAnalysis
+            : papersWithAnalysis.filter((p) =>
+                p.analysis?.categories?.some((cat) => subscriberCategories.includes(cat))
+              );
         const html = buildDailyEmailHtml(papers, email);
         const result = await sendEmail(email, getDailyEmailSubject(), html);
         if (!result.success) {
