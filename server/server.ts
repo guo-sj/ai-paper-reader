@@ -801,6 +801,13 @@ app.post('/api/subscribe', async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    // Rate limit: same email only once per 5 minutes (also prevents using us as spam relay)
+    const lastRequest = subscribeRateLimit.get(normalizedEmail);
+    if (lastRequest && Date.now() - lastRequest < SUBSCRIBE_RATE_LIMIT_MS) {
+        return res.json({ message: SUBSCRIBE_PENDING_MSG });
+    }
+    subscribeRateLimit.set(normalizedEmail, Date.now());
+
     // Validate and filter categories
     let validatedCategories: string[] = [];
     if (Array.isArray(categories) && categories.length > 0) {
@@ -814,13 +821,6 @@ app.post('/api/subscribe', async (req, res) => {
             validatedCategories = [];
         }
     }
-
-    // Rate limit: same email only once per 5 minutes (also prevents using us as spam relay)
-    const lastRequest = subscribeRateLimit.get(normalizedEmail);
-    if (lastRequest && Date.now() - lastRequest < SUBSCRIBE_RATE_LIMIT_MS) {
-        return res.json({ message: SUBSCRIBE_PENDING_MSG });
-    }
-    subscribeRateLimit.set(normalizedEmail, Date.now());
 
     // Check if already subscribed — return same generic response to avoid email enumeration
     const existingEmails = await listEmails();
