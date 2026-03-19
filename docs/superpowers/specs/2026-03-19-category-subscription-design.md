@@ -83,11 +83,11 @@ for each subscriber:
 
 Intersection check: `paper.analysis.categories` (array of category IDs assigned by AI, field confirmed in `PaperAnalysis` type in `types.ts`) must share at least one element with `subscriber.categories`.
 
-After the refactor, the SMTP-abort fallback that back-fills skipped results must use `subscribers[i].email` (not `emails[i]`). The `totalSubscribers` log field should use `subscribers.length`.
+After the refactor, `const emails = await listEmails()` is replaced entirely by `const subscribers = await listSubscribers()`. The SMTP-abort back-fill line must use `subscribers[i].email` and `totalSubscribers` log field must use `subscribers.length`.
 
 ## Frontend
 
-### Subscribe form (index.tsx)
+### Subscribe form (components/SubscriptionForm.tsx)
 
 1. Fetch category list from existing `GET /api/categories` on mount
 2. If fetch fails, hide the checkbox section and submit with no categories (all papers)
@@ -106,7 +106,7 @@ POST /api/subscribe
 |------|--------|
 | `server/subscriberStoreFile.ts` | Add `categories` to `StoredSubscriber`; update `addSubscriber` signature; fix `readStoreUnlocked` sanitization to preserve `categories` field |
 | `server/server.ts` | Update `generateConfirmToken`/`verifyConfirmToken` to include categories in payload; update `/api/subscribe` to accept and validate categories; update `sendDailyEmails` to use `listSubscribers()` and filter per subscriber |
-| `index.tsx` | Add category checkboxes to subscribe form |
+| `components/SubscriptionForm.tsx` | Add category checkboxes to subscribe form |
 
 ## Out of Scope
 
