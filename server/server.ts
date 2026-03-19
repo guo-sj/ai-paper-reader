@@ -170,14 +170,14 @@ const UNSUBSCRIBE_SECRET = process.env.UNSUBSCRIBE_SECRET || ADMIN_SESSION_SECRE
 const CONFIRM_SECRET = process.env.CONFIRM_SECRET || ADMIN_SESSION_SECRET;
 const CONFIRM_TOKEN_MAX_AGE_S = 24 * 60 * 60; // 24 hours
 
-function generateConfirmToken(email: string): string {
+function generateConfirmToken(email: string, categories: string[] = []): string {
     const ts = Math.floor(Date.now() / 1000);
-    const payload = JSON.stringify({ email, ts });
+    const payload = JSON.stringify({ email, ts, categories });
     const sig = crypto.createHmac('sha256', CONFIRM_SECRET).update(payload).digest('hex');
     return Buffer.from(JSON.stringify({ payload, sig })).toString('base64url');
 }
 
-function verifyConfirmToken(token: string): string | null {
+function verifyConfirmToken(token: string): { email: string; categories: string[] } | null {
     try {
         const outer = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
         const { payload, sig } = outer;
@@ -190,9 +190,9 @@ function verifyConfirmToken(token: string): string | null {
             return null;
         }
 
-        const { email, ts } = JSON.parse(payload);
+        const { email, ts, categories } = JSON.parse(payload);
         if (Date.now() / 1000 - ts > CONFIRM_TOKEN_MAX_AGE_S) return null;
-        return email as string;
+        return { email: email as string, categories: Array.isArray(categories) ? categories : [] };
     } catch {
         return null;
     }
@@ -839,8 +839,8 @@ app.get('/api/confirm-subscription', async (req, res) => {
         return res.status(400).send('<p>Invalid confirmation link.</p>');
     }
 
-    const email = verifyConfirmToken(token);
-    if (!email) {
+    const verified = verifyConfirmToken(token);
+    if (!verified) {
         return res.status(400).send(`
             <html><body style="font-family: sans-serif; max-width: 400px; margin: 60px auto; text-align: center;">
                 <h2>Link Expired</h2>
@@ -849,8 +849,10 @@ app.get('/api/confirm-subscription', async (req, res) => {
         `);
     }
 
+    const { email, categories } = verified;
+
     try {
-        await addSubscriber(email);
+        await addSubscriber(email, categories);
         console.log(`[confirm] New subscriber confirmed: ${email}`);
         await sendEmail(
             email,
