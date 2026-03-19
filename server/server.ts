@@ -1047,6 +1047,36 @@ cron.schedule(FETCH_CRON_SCHEDULE, async () => {
     }
 }, { timezone: 'UTC' });
 
-app.listen(PORT, () => {
+async function hasSentEmailsToday(): Promise<boolean> {
+    const todayKey = getTodayKey();
+    try {
+        const raw = await fs.readFile(EMAIL_LOG_PATH, 'utf8').catch(() => '');
+        const lines = raw.trim().split('\n').filter(Boolean);
+        return lines.some(line => {
+            try {
+                return JSON.parse(line).dateKey === todayKey;
+            } catch {
+                return false;
+            }
+        });
+    } catch {
+        return false;
+    }
+}
+
+app.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
+
+    const alreadySent = await hasSentEmailsToday();
+    if (!alreadySent) {
+        console.log('[Startup] No emails sent today, running catch-up task...');
+        try {
+            await fetchAndAnalyzePapers();
+            await sendDailyEmails();
+        } catch (error) {
+            console.error('[Startup] Catch-up task failed:', error);
+        }
+    } else {
+        console.log('[Startup] Emails already sent today, skipping catch-up.');
+    }
 });
