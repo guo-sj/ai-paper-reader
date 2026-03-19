@@ -266,7 +266,24 @@
       "published": "2026-03-17T17:59:55.000Z",
       "link": "https://huggingface.co/papers/2603.16870",
       "category": "diffusion models",
-      "upvotes": 56
+      "upvotes": 56,
+      "analysis": {
+        "paperId": "2603.16870",
+        "geminiSummary": "此论文提出了一种新的视频生成模型推理机制，重点在于扩散去噪步骤，而非传统的帧链机制。通过对早期去噪步骤进行质性分析和针对性实验，发现模型在早期探索多种候选方案并逐步收敛至最终答案，称之为步骤链。此研究还揭示了一些对模型性能至关重要的推理行为，如工作记忆、自我校正及增强、以及感知先于行动。在扩散步骤中，研究发现扩散变压器的层次功能自适应分化：早期层编码密集感知结构，中间层执行推理，后期层整合潜在表示。",
+        "keyInnovation": "挑战了视频推理的帧链假设，提出步骤链机制，提高视频模型的推理能力。",
+        "potentialImpact": "为视频生成模型的推理机制提供了系统理解，可能推动未来视频模型的智能化研究发展。",
+        "relevanceScore": 8,
+        "categories": [
+          "diffusion",
+          "video",
+          "multimodal"
+        ],
+        "categoryScores": {
+          "diffusion": 9,
+          "video": 8,
+          "multimodal": 7
+        }
+      }
     },
     {
       "id": "2603.16871",
@@ -289,7 +306,24 @@
       "published": "2026-03-17T17:59:56.000Z",
       "link": "https://huggingface.co/papers/2603.16871",
       "category": "video diffusion transformers",
-      "upvotes": 47
+      "upvotes": 47,
+      "analysis": {
+        "paperId": "2603.16871",
+        "geminiSummary": "此论文提出了一种将摄像机位姿作为统一几何表示的方法，用于增强3D游戏世界中的交互和长时间一致性。通过定义基于物理的连续动作空间，并使用Lie代数表示用户输入，论文实现了精确的摄像机姿态控制。利用摄像机位置作为空间索引，可检索相关的过去观察，使得长时间导航中的位置重访具有几何一致性。论文引入了一个大规模的数据集，包括3000分钟的真实人类游戏玩法及其摄像机轨迹和文本描述，实验显示此方法在动作可控性、长时间视觉质量和3D空间一致性方面优于当前的游戏世界模型。",
+        "keyInnovation": "通过引入摄像机位姿作为几何表示，解决了3D游戏世界中动作控制和长时间一致性的问题。",
+        "potentialImpact": "在交互式游戏和虚拟现实领域，提供了更精确和一致的用户体验，有助于提高生成环境的沉浸感。",
+        "relevanceScore": 8,
+        "categories": [
+          "3d",
+          "video",
+          "diffusion"
+        ],
+        "categoryScores": {
+          "3d": 9,
+          "video": 8,
+          "diffusion": 7
+        }
+      }
     },
     {
       "id": "2603.16448",
@@ -308,7 +342,24 @@
       "published": "2026-03-17T12:30:42.000Z",
       "link": "https://huggingface.co/papers/2603.16448",
       "category": "Partially Observable Markov Decision Process",
-      "upvotes": 43
+      "upvotes": 43,
+      "analysis": {
+        "paperId": "2603.16448",
+        "geminiSummary": "TRUST-SQL是一种工具集成的多段强化学习框架，专用于文本到SQL解析在未知模式下。在不注入完整模式的情况下，代理必须主动识别并验证相关模式集，从而进行分析。论文将任务表述为部分可观测马尔科夫决策过程，代理通过结构化四阶段协议在验证的元数据中进行推理。采用双轨GRPO策略，通过应用令牌级遮蔽优势，隔离探索奖励与执行结果，从而解决信用分配问题。",
+        "keyInnovation": "在不依赖模式预加载的情况下，通过工具集成实现了文本到SQL的优化解析，特别是在存在大量表和 noisy 元数据的环境中。",
+        "potentialImpact": "为企业数据库中进行动态SQL解析提供了一种新的解决方案，可能提升大规模数据处理的效率和准确性。",
+        "relevanceScore": 7,
+        "categories": [
+          "rl",
+          "nlp",
+          "other"
+        ],
+        "categoryScores": {
+          "rl": 8,
+          "nlp": 7,
+          "other": 6
+        }
+      }
     },
     {
       "id": "2603.16856",
@@ -325,7 +376,22 @@
       "published": "2026-03-17T17:57:49.000Z",
       "link": "https://huggingface.co/papers/2603.16856",
       "category": "online learning",
-      "upvotes": 35
+      "upvotes": 35,
+      "analysis": {
+        "paperId": "2603.16856",
+        "geminiSummary": "在线体验学习（OEL）框架使语言模型能够从其部署经验中不断改进。通过在用户侧收集的互动轨迹提取可转移经验知识，并通过on-policy上下文蒸馏整合到模型参数中，形成在线学习循环，从而收集更高质量的轨迹以进行后续改进。初期评估显示，OEL在任务准确性和令牌效率上持续提升，同时保持了分布外表现。",
+        "keyInnovation": "提出了一种以部署经验为基础的持续改进框架，打破了传统的离线人类标注模式。",
+        "potentialImpact": "这种框架有可能改变语言模型的训练方式，提升语言模型在现实环境中的适应性和表现。",
+        "relevanceScore": 8,
+        "categories": [
+          "llm",
+          "nlp"
+        ],
+        "categoryScores": {
+          "llm": 9,
+          "nlp": 8
+        }
+      }
     },
     {
       "id": "2603.08262",
@@ -348,7 +414,24 @@
       "published": "2026-03-09T11:33:05.000Z",
       "link": "https://huggingface.co/papers/2603.08262",
       "category": "Large Language Models",
-      "upvotes": 32
+      "upvotes": 32,
+      "analysis": {
+        "paperId": "2603.08262",
+        "geminiSummary": "FinToolBench是一种评估金融工具使用的可运行基准，针对LLM在金融领域的集成提供了新的评价标准。与现有以静态文本分析为主的金融评估不同，FinToolBench涵盖760个可执行金融工具和295个严密的工具需求查询。提议了一种新的评价框架，超越了二元执行成功评估，关注金融关键维度，如及时性、意图类型和监管域一致性。",
+        "keyInnovation": "提供了首个专用于金融领域工具学习代理的运行基准，填补了现有评估的空白。",
+        "potentialImpact": "为强化AI在金融中的可审计性和信赖度提供了一种新的基准测试标准，可能推动金融领域的自动化进程。",
+        "relevanceScore": 9,
+        "categories": [
+          "llm",
+          "agent",
+          "code"
+        ],
+        "categoryScores": {
+          "llm": 9,
+          "agent": 8,
+          "code": 7
+        }
+      }
     },
     {
       "id": "2603.15132",
@@ -362,7 +445,22 @@
       "published": "2026-03-16T11:25:09.000Z",
       "link": "https://huggingface.co/papers/2603.15132",
       "category": "Flow Matching",
-      "upvotes": 28
+      "upvotes": 28,
+      "analysis": {
+        "paperId": "2603.15132",
+        "geminiSummary": "该论文提出了一种名为 WiT 的新方法，通过引入中间语义路径点来解构像素空间生成轨迹，从而避免了潜在表示信息损失。在无监督生成过程中，为每个噪声状态动态推断出这些中间路径点，并引导主要的扩散变换器实现更佳像素生成效果。",
+        "keyInnovation": "与传统的流量匹配模型相比，WiT通过加入中间语义路径点，解决了像素流形缺乏语义连续性问题，从而优化了传输路径，显著减少了交叉点处的路径冲突。",
+        "potentialImpact": "WiT可能会对图像生成领域产生深远影响，提高无监督生成的效率和质量，为扩散模型带来新的应用潜力。",
+        "relevanceScore": 8,
+        "categories": [
+          "diffusion",
+          "cv"
+        ],
+        "categoryScores": {
+          "diffusion": 9,
+          "cv": 7
+        }
+      }
     },
     {
       "id": "2603.16139",
@@ -376,7 +474,22 @@
       "published": "2026-03-17T05:41:48.000Z",
       "link": "https://huggingface.co/papers/2603.16139",
       "category": "Unified Multimodal Models",
-      "upvotes": 27
+      "upvotes": 27,
+      "analysis": {
+        "paperId": "2603.16139",
+        "geminiSummary": "此研究重新定义了统一多模态模型的视觉生成预训练策略，提出了一个只需使用未标记图像数据的两阶段训练方法，减少了对高质量文本图像配对数据的依赖，从而提高预训练效率。",
+        "keyInnovation": "与过往多模态模型需要大量配对数据不同，IOMM采用未标记图像进行视觉预训练，减少了成本，提升了训练效率，并取得了SOTA性能。",
+        "potentialImpact": "IOMM可能会加速多模态模型的研发，降低数据依赖性，并为视觉生成组件提供更高效的预训练路线。",
+        "relevanceScore": 7,
+        "categories": [
+          "multimodal",
+          "efficient"
+        ],
+        "categoryScores": {
+          "multimodal": 8,
+          "efficient": 7
+        }
+      }
     },
     {
       "id": "2603.09022",
@@ -399,7 +512,22 @@
       "published": "2026-03-09T23:36:32.000Z",
       "link": "https://huggingface.co/papers/2603.09022",
       "category": "multi-agent LLM",
-      "upvotes": 20
+      "upvotes": 20,
+      "analysis": {
+        "paperId": "2603.09022",
+        "geminiSummary": "该论文介绍了MEMO，一种基于自我游戏的优化框架，通过保留和探索机制解决多轮多代理大语言模型游戏中的不稳定性和性能不足。",
+        "keyInnovation": "MEMO通过记忆增强和不确定性选择，稳定了提示选择在多次互动中的表现，并提高了多代理游戏的赢率。",
+        "potentialImpact": "MEMO可能会改善多代理系统在长时间交互中的稳定性，为游戏AI和多代理互动领域提供有力支持。",
+        "relevanceScore": 6,
+        "categories": [
+          "agent",
+          "rl"
+        ],
+        "categoryScores": {
+          "agent": 6,
+          "rl": 5
+        }
+      }
     },
     {
       "id": "2603.13875",
@@ -415,7 +543,22 @@
       "published": "2026-03-14T10:17:33.000Z",
       "link": "https://huggingface.co/papers/2603.13875",
       "category": "Transformers",
-      "upvotes": 20
+      "upvotes": 20,
+      "analysis": {
+        "paperId": "2603.13875",
+        "geminiSummary": "GradMem是一种创新的记忆写入方法，通过测试时梯度下降优化，减少了上下文存储的内存开销，为长上下文条件提供了更紧凑的解决方案。",
+        "keyInnovation": "相较于传统的KV缓存方法，GradMem通过梯度优化过程中编码上下文记忆，提高了重构精度和效率。",
+        "potentialImpact": "这种记忆增强方法有可能减少语言模型的内存使用，为长文本的处理和生成带来更有效的手段。",
+        "relevanceScore": 7,
+        "categories": [
+          "attention",
+          "llm"
+        ],
+        "categoryScores": {
+          "attention": 8,
+          "llm": 7
+        }
+      }
     },
     {
       "id": "2603.16869",
@@ -437,7 +580,20 @@
       "published": "2026-03-17T17:59:51.000Z",
       "link": "https://huggingface.co/papers/2603.16869",
       "category": "3D generative models",
-      "upvotes": 16
+      "upvotes": 16,
+      "analysis": {
+        "paperId": "2603.16869",
+        "geminiSummary": "SegviGen是一种利用预训练的3D生成模型进行部分分割的方法，通过重新利用生成性先验对3D对象进行高效部分分割。",
+        "keyInnovation": "与传统跨视图不一致性方法不同，SegviGen利用3D生成的结构化先验进行独特部分分割色彩化，减少了人工标注需求。",
+        "potentialImpact": "该方法可能显著降低3D分割任务的标注成本，并推动3D对象分析和交互的便捷性。",
+        "relevanceScore": 8,
+        "categories": [
+          "3d"
+        ],
+        "categoryScores": {
+          "3d": 9
+        }
+      }
     },
     {
       "id": "2603.14465",
@@ -987,7 +1143,24 @@
       "published": "2026-03-17T15:20:19.000Z",
       "link": "https://huggingface.co/papers/2603.16649",
       "category": "Mixture of Experts",
-      "upvotes": 2
+      "upvotes": 2,
+      "analysis": {
+        "paperId": "2603.16649",
+        "geminiSummary": "该论文提出了StyleExpert框架，一种基于Mixture of Experts (MoE)的方法来实现多样化的图像风格化。这个语义感知框架利用统一风格编码器，将多样风格嵌入一致的潜在空间，通过相似性感知的门控机制动态路由风格到专门的专家。",
+        "keyInnovation": "与基于扩散的方法相比，StyleExpert不仅在颜色转换上有所改进，还能处理复杂的语义和材质细节。",
+        "potentialImpact": "该方法能够更好地保留语义和材质细节，并能有效泛化到未见过的风格，这将推动图像风格化在艺术创作、广告设计等领域的应用。",
+        "relevanceScore": 9,
+        "categories": [
+          "diffusion",
+          "attention",
+          "cv"
+        ],
+        "categoryScores": {
+          "diffusion": 9,
+          "attention": 8,
+          "cv": 8
+        }
+      }
     },
     {
       "id": "2603.16063",
@@ -1005,7 +1178,24 @@
       "published": "2026-03-17T02:15:48.000Z",
       "link": "https://huggingface.co/papers/2603.16063",
       "category": "Vision Transformers",
-      "upvotes": 2
+      "upvotes": 2,
+      "analysis": {
+        "paperId": "2603.16063",
+        "geminiSummary": "ViT-AdaLA是一种新的框架，用于将视觉基础模型（VFMs）的先验知识适配并转移到线性注意力的视觉Transformer（ViTs）。其策略为注意力对齐、特征对齐和监督微调三个阶段。",
+        "keyInnovation": "提出了一种从VFMs转移知识到线性注意力ViTs的方法，解决了以往线性注意力训练需要大量计算资源的挑战。",
+        "potentialImpact": "此方法可以使视觉Transformer在处理长序列时更高效，促进其在计算机视觉领域的广泛应用。",
+        "relevanceScore": 8,
+        "categories": [
+          "attention",
+          "efficient",
+          "cv"
+        ],
+        "categoryScores": {
+          "attention": 9,
+          "efficient": 8,
+          "cv": 7
+        }
+      }
     },
     {
       "id": "2603.16861",
@@ -1042,7 +1232,22 @@
       "published": "2026-03-17T17:59:03.000Z",
       "link": "https://huggingface.co/papers/2603.16861",
       "category": "vision-language model",
-      "upvotes": 2
+      "upvotes": 2,
+      "analysis": {
+        "paperId": "2603.16861",
+        "geminiSummary": "MolmoB0T展示了通过大规模模拟训练数据实现零样本传输至真实世界。引入了MolmoBot-Engine用于程序化数据生成，以及MolmoBot-Data数据集，证明了在静态和移动操控任务中的有效性。",
+        "keyInnovation": "挑战了需要真实世界数据或任务特定微调以实现模拟到现实传输的普遍观点。",
+        "potentialImpact": "通过高质量的模拟数据训练，机器人学习可以节省大量的真实世界数据采集成本，促进机器人自动化操作的普及。",
+        "relevanceScore": 9,
+        "categories": [
+          "robotics",
+          "rl"
+        ],
+        "categoryScores": {
+          "robotics": 9,
+          "rl": 8
+        }
+      }
     },
     {
       "id": "2603.16077",
@@ -1058,7 +1263,24 @@
       "published": "2026-03-17T02:54:16.000Z",
       "link": "https://huggingface.co/papers/2603.16077",
       "category": "masked diffusion models",
-      "upvotes": 1
+      "upvotes": 1,
+      "analysis": {
+        "paperId": "2603.16077",
+        "geminiSummary": "MDM-Prime-v2通过二进制编码和索引洗牌实现了计算最优化的扩散语言模型扩展。新工具使得在掩码扩散模型中实现更有效的子标记化，提升了计算效率。",
+        "keyInnovation": "开发了比自动回归模型更为计算有效的扩散语言模型，同时解决了常用子标记器引起的可能性估计退化问题。",
+        "potentialImpact": "这种新的语言模型技术有望提高大规模语言模型的计算效率，推动自然语言处理系统在资源受限情况下的应用。",
+        "relevanceScore": 9,
+        "categories": [
+          "diffusion",
+          "llm",
+          "nlp"
+        ],
+        "categoryScores": {
+          "diffusion": 9,
+          "llm": 8,
+          "nlp": 8
+        }
+      }
     },
     {
       "id": "2603.16039",
@@ -1070,7 +1292,24 @@
       "published": "2026-03-17T00:56:29.000Z",
       "link": "https://huggingface.co/papers/2603.16039",
       "category": "Transformer",
-      "upvotes": 1
+      "upvotes": 1,
+      "analysis": {
+        "paperId": "2603.16039",
+        "geminiSummary": "探讨了现代Transformer结构中的残差流动双重性，提供了一种通过序列位置和层深度组织信息的双轴视图，总结了最近的关于深度聚合和层间注意力的研究。",
+        "keyInnovation": "提出通过学习的深度聚合可以优于统一残差累积，提供了对Transformer设计空间的清晰组织方法。",
+        "potentialImpact": "这种视角的转变可能促进Transformer架构的设计，改善大规模自动回归模型在硬件资源使用上的效率。",
+        "relevanceScore": 7,
+        "categories": [
+          "attention",
+          "efficient",
+          "llm"
+        ],
+        "categoryScores": {
+          "attention": 9,
+          "efficient": 7,
+          "llm": 6
+        }
+      }
     },
     {
       "id": "2603.14326",
@@ -1090,7 +1329,22 @@
       "published": "2026-03-15T11:09:38.000Z",
       "link": "https://huggingface.co/papers/2603.14326",
       "category": "AI",
-      "upvotes": 1
+      "upvotes": 1,
+      "analysis": {
+        "paperId": "2603.14326",
+        "geminiSummary": "该论文提出了 ECG-Reasoning-Benchmark，旨在评估多模态大型语言模型在心电图解释中的临床推理能力。通过约 6400 个样本，对 17 种核心心电图诊断进行逐步推理评估，揭示现有模型在多步逻辑推理中的重要漏洞。",
+        "keyInnovation": "引入了一个系统化的多轮评价框架，专注于心电图解释的逐步推理能力，并揭示了现有模型在视觉证据解释中存在的薄弱环节。",
+        "potentialImpact": "为医学 AI 提供了重要的评价基准，有助于未来开发更强大的推理能力模型，推动医学诊断领域的自动化发展。",
+        "relevanceScore": 7,
+        "categories": [
+          "multimodal",
+          "cv"
+        ],
+        "categoryScores": {
+          "multimodal": 8,
+          "cv": 7
+        }
+      }
     },
     {
       "id": "2603.14588",
@@ -1102,7 +1356,22 @@
       "published": "2026-03-15T20:20:54.000Z",
       "link": "https://huggingface.co/papers/2603.14588",
       "category": "Fisher information structure",
-      "upvotes": 1
+      "upvotes": 1,
+      "analysis": {
+        "paperId": "2603.14588",
+        "geminiSummary": "SuperLocalMemory V3 提供基于信息几何的理论基础，以改善 AI 代理的记忆检索、生命周期管理及一致性。提出了一种新的检索度量标准、记忆生命周期的统计动力学建模，以及用于检测矛盾的细胞簇模型。",
+        "keyInnovation": "建立了信息几何、层析理论及随机动力学的新基础，尤其是在记忆检索的数学处理上，引入了更准确的检索度量及生命周期管理。",
+        "potentialImpact": "推进了代理记忆系统的数学理论发展，满足更高的准确性和一致性要求，可能影响未来自主 AI 系统的设计。",
+        "relevanceScore": 8,
+        "categories": [
+          "agent",
+          "efficient"
+        ],
+        "categoryScores": {
+          "agent": 9,
+          "efficient": 8
+        }
+      }
     },
     {
       "id": "2603.15674",
@@ -1114,7 +1383,22 @@
       "published": "2026-03-13T17:44:14.000Z",
       "link": "https://huggingface.co/papers/2603.15674",
       "category": "Latent Posterior Factors",
-      "upvotes": 1
+      "upvotes": 1,
+      "analysis": {
+        "paperId": "2603.15674",
+        "geminiSummary": "该论文提出了 Latent Posterior Factors (LPF)，用于在高风险领域中的多证据推理，提供了理论基础保证。LPF 使用变分自编码器将证据项编码成高斯后验，通过蒙特卡罗边缘化转换为软因素，并通过精确的和乘网络推理进行聚合。",
+        "keyInnovation": "提供了多证据推理的完整理论框架，解决了现存方法在处理多证据场景时缺乏保证的问题，提出了七项理论保证。",
+        "potentialImpact": "为涉及多证据场景的可信 AI 应用建立了坚实的理论基础，可能在医疗、金融及法律领域带来广泛影响。",
+        "relevanceScore": 9,
+        "categories": [
+          "safety",
+          "efficient"
+        ],
+        "categoryScores": {
+          "safety": 9,
+          "efficient": 8
+        }
+      }
     },
     {
       "id": "2603.15670",
@@ -1126,7 +1410,22 @@
       "published": "2026-03-13T10:05:14.000Z",
       "link": "https://huggingface.co/papers/2603.15670",
       "category": "variational autoencoder",
-      "upvotes": 1
+      "upvotes": 1,
+      "analysis": {
+        "paperId": "2603.15670",
+        "geminiSummary": "该研究提出了一个结合变分自编码器后验的不确定性表示与结构化概率推理的框架，用于多证据概率推理。包括两个实例架构：LPF-SPN 和 LPF-Learned，用于比较明确的概率推理和学习的聚合。",
+        "keyInnovation": "首次将潜在不确定性表示与结构化概率推理相结合，推动了对不确定性量化的探索，提高了推理的适用性。",
+        "potentialImpact": "可能影响从医疗诊断到合规评估的多个领域的决策系统，提供了更强的处理异质数据的能力。",
+        "relevanceScore": 8,
+        "categories": [
+          "multimodal",
+          "nlp"
+        ],
+        "categoryScores": {
+          "multimodal": 8,
+          "nlp": 7
+        }
+      }
     },
     {
       "id": "2603.16777",
@@ -1146,7 +1445,22 @@
       "published": "2026-03-17T16:55:11.000Z",
       "link": "https://huggingface.co/papers/2603.16777",
       "category": "reinforcement learning",
-      "upvotes": 1
+      "upvotes": 1,
+      "analysis": {
+        "paperId": "2603.16777",
+        "geminiSummary": "TraceR1 是一种两阶段强化学习框架，专注于在多模态 AI 代理中实现预测性计划。通过预测短期轨迹推动可执行性的微调，提高规划稳定性与执行健壮性。",
+        "keyInnovation": "引入高级别任务中的预测性轨迹推理，显著改善多模态代理在复杂环境中的计划和行动能力。",
+        "potentialImpact": "可能对未来的多模态交互系统产生深远影响，提升复杂任务的解决能力和长期目标实现。",
+        "relevanceScore": 9,
+        "categories": [
+          "rl",
+          "multimodal"
+        ],
+        "categoryScores": {
+          "rl": 9,
+          "multimodal": 7
+        }
+      }
     },
     {
       "id": "2603.16343",
@@ -1323,7 +1637,20 @@
       "published": "2026-03-13T22:18:22.000Z",
       "link": "https://huggingface.co/papers/2603.13627",
       "category": "chemical language models",
-      "upvotes": 0
+      "upvotes": 0,
+      "analysis": {
+        "paperId": "2603.13627",
+        "geminiSummary": "这篇论文系统分析化学语言模型在分子属性预测任务中的表现，通过控制实验研究数据集规模、模型大小和标准化等因素影响。",
+        "keyInnovation": "首次系统化地探讨了化学语言模型在分子属性预测任务中的多种因素影响，以增强对模型性能影响的理解。",
+        "potentialImpact": "该研究可以提升化学语言模型的预测能力和可靠性，从而在化学和药物开发等领域带来更准确的模型应用。",
+        "relevanceScore": 7,
+        "categories": [
+          "other"
+        ],
+        "categoryScores": {
+          "other": 9
+        }
+      }
     },
     {
       "id": "2603.16587",
@@ -1335,7 +1662,20 @@
       "published": "2026-03-17T14:36:07.000Z",
       "link": "https://huggingface.co/papers/2603.16587",
       "category": "histomic features",
-      "upvotes": 0
+      "upvotes": 0,
+      "analysis": {
+        "paperId": "2603.16587",
+        "geminiSummary": "HistoAtlas建立了一个全癌症形态图谱，将组织学特征与分子程序和临床结果相联系，方便大规模生物标记物发现。",
+        "keyInnovation": "使用常规H&E切片进行大规模生物标记物发现，不需特殊染色或测序，并可追踪至组织和细胞层面。",
+        "potentialImpact": "该平台可能会推动癌症研究，特别是在无需昂贵技术的情况下进行大规模生物标记物发现。",
+        "relevanceScore": 8,
+        "categories": [
+          "other"
+        ],
+        "categoryScores": {
+          "other": 9
+        }
+      }
     },
     {
       "id": "2603.14704",
@@ -1356,7 +1696,20 @@
       "published": "2026-03-16T01:28:51.000Z",
       "link": "https://huggingface.co/papers/2603.14704",
       "category": "diffusion models",
-      "upvotes": 0
+      "upvotes": 0,
+      "analysis": {
+        "paperId": "2603.14704",
+        "geminiSummary": "该研究提出了链式轨迹方法，通过图论计划改善扩散模型的生成质量和效率。",
+        "keyInnovation": "引入Diffusion DNA以简化高维噪声空间，允许动态计算资源分配，优化扩散过程的图规划。",
+        "potentialImpact": "该方法可提高扩散模型的生成质量和资源效率，在生成模型的应用中具有广泛潜力。",
+        "relevanceScore": 9,
+        "categories": [
+          "diffusion"
+        ],
+        "categoryScores": {
+          "diffusion": 10
+        }
+      }
     },
     {
       "id": "2603.15118",
@@ -1374,7 +1727,20 @@
       "published": "2026-03-16T11:15:56.000Z",
       "link": "https://huggingface.co/papers/2603.15118",
       "category": "multimodal foundation models",
-      "upvotes": 0
+      "upvotes": 0,
+      "analysis": {
+        "paperId": "2603.15118",
+        "geminiSummary": "VAREX基准测试多模态模型在结构化数据提取中的表现，提供可控输入格式以分析模型能力。",
+        "keyInnovation": "提供了多种输入格式以系统研究输入格式如何影响提取精度，是现有基准中缺失的能力。",
+        "potentialImpact": "该基准有助于评估和开发更强的多模态结构化数据提取模型，在文档处理领域具重要价值。",
+        "relevanceScore": 8,
+        "categories": [
+          "multimodal"
+        ],
+        "categoryScores": {
+          "multimodal": 9
+        }
+      }
     },
     {
       "id": "2603.12396",
@@ -1395,7 +1761,22 @@
       "published": "2026-03-12T19:18:59.000Z",
       "link": "https://huggingface.co/papers/2603.12396",
       "category": "Retrieval-Augmented Generation",
-      "upvotes": 0
+      "upvotes": 0,
+      "analysis": {
+        "paperId": "2603.12396",
+        "geminiSummary": "研究测试时对Search-R1框架的修改，提出上下文模块和去重模块以提高RAG系统效率和准确性。",
+        "keyInnovation": "采用上下文模块和去重模块来减少不必要的信息检索，提高答案准确性和检索效率。",
+        "potentialImpact": "可以提升RAG系统在复杂问题上的效率和准确性，对多跳问题的解决具有指导意义。",
+        "relevanceScore": 9,
+        "categories": [
+          "rag",
+          "agent"
+        ],
+        "categoryScores": {
+          "rag": 8,
+          "agent": 7
+        }
+      }
     }
   ]
 }

@@ -449,7 +449,7 @@ const fetchAndAnalyzePapers = async (): Promise<void> => {
     const existingCache = await readAnalyzedPapersCache();
     const isToday = existingCache?.dateKey === todayKey;
     const alreadyAnalyzedIds = new Set(
-        isToday ? existingCache!.papers.map(p => p.id) : []
+        isToday ? existingCache!.papers.filter(p => p.analysis).map(p => p.id) : []
     );
 
     // Papers that haven't been analyzed yet
