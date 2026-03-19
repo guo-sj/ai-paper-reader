@@ -8,7 +8,6 @@ import CategoryFilter from './components/CategoryFilter';
 import SubscriptionForm from './components/SubscriptionForm';
 
 const PAPER_CACHE_MAX_AGE_MS = DEFAULT_CACHE_TTL_MS;
-const TOP_N = 5;
 
 interface ScoringWeights {
   w_upvotes: number;
@@ -127,8 +126,7 @@ const App: React.FC = () => {
       p.analysis?.categories?.includes(selectedCategory)
     );
     return filtered
-      .sort((a, b) => score(b, selectedCategory) - score(a, selectedCategory))
-      .slice(0, TOP_N);
+      .sort((a, b) => score(b, selectedCategory) - score(a, selectedCategory));
   })();
 
   const selectedCategoryLabel = selectedCategory
@@ -233,7 +231,7 @@ const App: React.FC = () => {
                 {selectedCategory ? (
                   displayedPapers.length > 0 ? (
                     <p className="text-slate-500 mt-1">
-                      Top {displayedPapers.length} / 共 {categoryPaperCount} 篇 · {selectedCategoryLabel}
+                      共 {categoryPaperCount} 篇 · {selectedCategoryLabel}
                     </p>
                   ) : (
                     <p className="text-slate-500 mt-1">今日暂无「{selectedCategoryLabel}」的论文，试试其他类别？</p>
