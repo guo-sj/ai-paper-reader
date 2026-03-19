@@ -455,11 +455,20 @@ const fetchAndAnalyzePapers = async (): Promise<void> => {
     console.log('[fetchAndAnalyzePapers] Analysis complete and saved to analyze_papers_result.json.');
 };
 
-const buildDailyEmailHtml = (papers: AnalyzedPaper[], subscriberEmail: string) => {
+const buildDailyEmailHtml = (papers: AnalyzedPaper[], subscriberEmail: string, categoryLabelMap: Record<string, string> = {}) => {
     const unsubToken = generateUnsubscribeToken(subscriberEmail);
     const unsubUrl = `${BASE_URL}/api/unsubscribe?email=${encodeURIComponent(subscriberEmail)}&token=${unsubToken}`;
 
     const paperHtml = papers.map((p) => {
+        const catLabels = (p.analysis?.categories ?? [])
+            .map((id) => categoryLabelMap[id] ?? id)
+            .filter(Boolean);
+        const categoryTagsHtml = catLabels.length > 0
+            ? `<p style="margin:0 0 8px 0;">${catLabels.map((label) =>
+                `<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;margin-right:4px;">${escapeHtml(label)}</span>`
+              ).join('')}</p>`
+            : '';
+
         const analysisHtml = p.analysis ? `
             <div style="background:#f0f7ff;border:1px solid #d0e8ff;border-radius:8px;padding:12px;margin:12px 0;">
                 <p style="margin:0 0 6px 0;font-size:11px;font-weight:bold;color:#1d4ed8;text-transform:uppercase;letter-spacing:0.05em;">AI 摘要</p>
@@ -486,6 +495,7 @@ const buildDailyEmailHtml = (papers: AnalyzedPaper[], subscriberEmail: string) =
                 <p style="margin:0 0 8px 0;font-size:12px;color:#9ca3af;">
                     ${p.authors.slice(0, 3).map(escapeHtml).join(', ')}${p.authors.length > 3 ? ' et al.' : ''}
                 </p>
+                ${categoryTagsHtml}
                 ${analysisHtml}
                 <p style="margin:8px 0 0 0;font-size:13px;color:#6b7280;line-height:1.5;">
                     ${escapeHtml(p.summary.slice(0, 300))}${p.summary.length > 300 ? '...' : ''}
@@ -680,15 +690,21 @@ app.post('/api/admin/send-test-email', requireAdminAuth, async (req, res) => {
             return res.status(503).json({ error: 'analyze_papers_result.json 不存在或为空，请先触发论文获取与分析' });
         }
         const papersWithAnalysis = analyzed.papers.filter((p) => p.analysis);
+        const config = await readCategoriesConfig();
+        const categoryLabelMap: Record<string, string> = Object.fromEntries(config.categories.map((c) => [c.id, c.label]));
+        const sortedPapers = [...papersWithAnalysis].sort((a, b) =>
+            computeFinalScore(b, undefined, papersWithAnalysis, config.scoring) -
+            computeFinalScore(a, undefined, papersWithAnalysis, config.scoring)
+        );
         const subscribers = await listSubscribers();
         const subscriber = subscribers.find((s) => s.email === email.trim().toLowerCase());
         const subscriberCategories = subscriber?.categories;
         const papers = (!subscriberCategories || subscriberCategories.length === 0)
-            ? papersWithAnalysis
-            : papersWithAnalysis.filter((p) =>
+            ? sortedPapers
+            : sortedPapers.filter((p) =>
                 p.analysis?.categories?.some((cat) => subscriberCategories.includes(cat))
               );
-        const html = buildDailyEmailHtml(papers, email);
+        const html = buildDailyEmailHtml(papers, email, categoryLabelMap);
         const result = await sendEmail(email, getDailyEmailSubject(), html);
         if (!result.success) {
             return res.status(500).json({ error: 'Failed to send email', details: result.error });
@@ -923,6 +939,15 @@ async function sendDailyEmails(): Promise<void> {
         return;
     }
 
+    const config = await readCategoriesConfig();
+    const categoryLabelMap: Record<string, string> = Object.fromEntries(config.categories.map((c) => [c.id, c.label]));
+
+    // Sort papers same as frontend "All" view
+    const sortedPapers = [...papersWithAnalysis].sort((a, b) =>
+        computeFinalScore(b, undefined, papersWithAnalysis, config.scoring) -
+        computeFinalScore(a, undefined, papersWithAnalysis, config.scoring)
+    );
+
     const subscribers = await listSubscribers();
     const startTime = Date.now();
     const signal = { aborted: false };
@@ -930,8 +955,8 @@ async function sendDailyEmails(): Promise<void> {
 
     const rawResults = await runWithConcurrency(subscribers, EMAIL_CONCURRENCY, async (subscriber) => {
         const papersForSubscriber = (!subscriber.categories || subscriber.categories.length === 0)
-            ? papersWithAnalysis
-            : papersWithAnalysis.filter((p) =>
+            ? sortedPapers
+            : sortedPapers.filter((p) =>
                 p.analysis?.categories?.some((cat) => subscriber.categories!.includes(cat))
               );
 
@@ -940,7 +965,7 @@ async function sendDailyEmails(): Promise<void> {
             return { success: true, email: subscriber.email };
         }
 
-        const personalizedHtml = buildDailyEmailHtml(papersForSubscriber, subscriber.email);
+        const personalizedHtml = buildDailyEmailHtml(papersForSubscriber, subscriber.email, categoryLabelMap);
         const unsubToken = generateUnsubscribeToken(subscriber.email);
         const unsubUrl = `${BASE_URL}/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}&token=${unsubToken}`;
         const result = await sendEmail(subscriber.email, getDailyEmailSubject(), personalizedHtml, {
