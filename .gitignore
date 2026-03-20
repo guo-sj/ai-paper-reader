@@ -1,1 +1,4 @@
 .env.local
+server/analyze_papers_result.json
+server/email-send-log.jsonl
+server/subscribers.json
