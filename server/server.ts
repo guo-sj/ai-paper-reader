@@ -627,13 +627,18 @@ app.post('/api/admin/subscribers', requireAdminAuth, async (req, res) => {
 
         if (sendWelcome) {
             try {
-                await sendEmail(
-                    email,
-                    'Welcome to AI Insight',
-                    '<h1>Welcome!</h1><p>You have been added by admin to daily AI paper updates.</p>'
-                );
+                const alreadySent = await hasSentEmailsToday();
+                if (alreadySent) {
+                    await sendTodayEmailToNewSubscriber(email);
+                } else {
+                    await sendEmail(
+                        email,
+                        'Welcome to AI Insight',
+                        '<h1>Welcome!</h1><p>You have been added by admin to daily AI paper updates.</p>'
+                    );
+                }
             } catch (error) {
-                console.error('Error sending welcome email from admin route:', error);
+                console.error('Error sending email to new subscriber (admin):', error);
             }
         }
 
@@ -816,6 +821,14 @@ app.post('/api/subscribe', async (req, res) => {
         await addSubscriber(normalizedEmail, validatedCategories);
         console.log(`[subscribe] New subscriber: ${normalizedEmail}`);
         res.json({ message: '订阅成功' });
+
+        // If today's email batch already ran, send today's email to this new subscriber
+        const alreadySent = await hasSentEmailsToday();
+        if (alreadySent) {
+            sendTodayEmailToNewSubscriber(normalizedEmail, validatedCategories).catch((err) => {
+                console.error(`[subscribe] Failed to send today's email to new subscriber ${normalizedEmail}:`, err);
+            });
+        }
     } catch (error: any) {
         if (error instanceof EmailAlreadySubscribedError) {
             return res.status(409).json({ error: '该邮箱已订阅。' });
@@ -916,6 +929,43 @@ async function runWithConcurrency<T, R>(
     const workerCount = Math.min(concurrency, items.length);
     await Promise.all(Array.from({ length: workerCount }, worker));
     return results;
+}
+
+async function sendTodayEmailToNewSubscriber(email: string, categories?: string[]): Promise<void> {
+    const todayKey = getTodayKey();
+    const analyzed = await readAnalyzedPapersCache();
+    if (!analyzed || analyzed.dateKey !== todayKey || analyzed.papers.length === 0) return;
+
+    const papersWithAnalysis = analyzed.papers.filter((p) => p.analysis);
+    if (papersWithAnalysis.length === 0) return;
+
+    const config = await readCategoriesConfig();
+    const categoryLabelMap: Record<string, string> = Object.fromEntries(
+        config.categories.map((c) => [c.id, c.label])
+    );
+    const sortedPapers = [...papersWithAnalysis].sort((a, b) =>
+        computeFinalScore(b, undefined, papersWithAnalysis, config.scoring) -
+        computeFinalScore(a, undefined, papersWithAnalysis, config.scoring)
+    );
+    const papersForSubscriber = (!categories || categories.length === 0)
+        ? sortedPapers
+        : sortedPapers.filter((p) =>
+            p.analysis?.categories?.some((cat) => categories.includes(cat))
+          );
+    if (papersForSubscriber.length === 0) return;
+
+    const html = buildDailyEmailHtml(papersForSubscriber, email, categoryLabelMap);
+    const unsubToken = generateUnsubscribeToken(email);
+    const unsubUrl = `${BASE_URL}/api/unsubscribe?email=${encodeURIComponent(email)}&token=${unsubToken}`;
+    const result = await sendEmail(email, getDailyEmailSubject(), html, {
+        'List-Unsubscribe': `<${unsubUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    });
+    if (result.success) {
+        console.log(`[NewSubscriber] Sent today's email to new subscriber: ${email}`);
+    } else {
+        console.error(`[NewSubscriber] Failed to send today's email to ${email}: ${result.error}`);
+    }
 }
 
 async function sendDailyEmails(): Promise<void> {
