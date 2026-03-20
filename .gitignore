@@ -1,4 +1,5 @@
 .env.local
 server/analyze_papers_result.json
+server/papers-cache.json
 server/email-send-log.jsonl
 server/subscribers.json
