@@ -167,8 +167,8 @@ function requireAdminAuth(req: express.Request, res: express.Response, next: exp
 
 const UNSUBSCRIBE_SECRET = process.env.UNSUBSCRIBE_SECRET || ADMIN_SESSION_SECRET;
 
-// Rate limit for /api/subscribe: same email can only request once per 5 minutes
-const SUBSCRIBE_RATE_LIMIT_MS = 5 * 60 * 1000;
+// Rate limit for /api/subscribe: same email can only request once per 30 seconds
+const SUBSCRIBE_RATE_LIMIT_MS = 30 * 1000;
 const subscribeRateLimit = new Map<string, number>(); // email -> last request timestamp
 
 // Periodically clean up expired entries to avoid memory leak
@@ -800,7 +800,7 @@ app.post('/api/subscribe', async (req, res) => {
     // Rate limit: same email only once per 5 minutes
     const lastRequest = subscribeRateLimit.get(normalizedEmail);
     if (lastRequest && Date.now() - lastRequest < SUBSCRIBE_RATE_LIMIT_MS) {
-        return res.status(429).json({ error: '请求过于频繁，请稍后再试。' });
+        return res.status(429).json({ error: '请求过于频繁，请 30 秒后再试。' });
     }
     subscribeRateLimit.set(normalizedEmail, Date.now());
 
