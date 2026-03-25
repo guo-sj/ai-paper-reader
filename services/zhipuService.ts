@@ -11,14 +11,12 @@ function buildPrompt(batch: ArxivPaper[], categoryIds: string[]): string {
   return `
 请分析以下来自 arXiv 的最新 AI 研究论文。
 请务必使用 **中文** 提供 JSON 格式的结构化分析。
-必须返回一个 JSON 数组，每个元素包含字段：paperId（与下方 ID 一致）、geminiSummary、keyInnovation、potentialImpact、relevanceScore（1-10 的数字）、categories（字符串数组）、categoryScores（对象）。
+必须返回一个 JSON 数组，每个元素包含字段：paperId（与下方 ID 一致）、summary、relevanceScore（1-10 的数字）、categories（字符串数组）、categoryScores（对象）。
 
 分析重点包括：
-1. 核心方法论的简洁摘要（geminiSummary）。
-2. 与之前工作相比的关键创新点（keyInnovation）。
-3. 对 AI 领域的长期潜在影响（potentialImpact）。
-4. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
-5. 从以下预定义类别中，选出该论文最相关的 1-3 个类别，并给出每个类别的相关度评分（1-10）。
+1. 用 50~150 字的中文写一段综合摘要（summary），涵盖：该论文解决的核心问题、采用的关键方法和技术创新点，以及对 AI 领域的潜在影响，要求信息密度高，让专家一眼能看出论文讲了什么。
+2. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
+3. 从以下预定义类别中，选出该论文最相关的 1-3 个类别，并给出每个类别的相关度评分（1-10）。
    可选类别 ID：[${categoryList}]
    返回：categories（选中类别 ID 的字符串数组）、categoryScores（对象，key 为类别 ID，value 为 1-10 评分）。
    不相关的类别不需要出现在 categoryScores 中。
@@ -31,7 +29,7 @@ ID: ${p.id}
 摘要: ${p.summary}
 `).join('\n')}
 
-请直接返回 JSON 数组，不要其他说明。例如：[{"paperId":"...","geminiSummary":"...","keyInnovation":"...","potentialImpact":"...","relevanceScore":8,"categories":["attention","llm"],"categoryScores":{"attention":9,"llm":6}}, ...]
+请直接返回 JSON 数组，不要其他说明。例如：[{"paperId":"...","summary":"...","relevanceScore":8,"categories":["attention","llm"],"categoryScores":{"attention":9,"llm":6}}, ...]
 `.trim();
 }
 
@@ -99,9 +97,7 @@ async function analyzeBatch(
     if (!paperId) continue;
     record[paperId] = {
       paperId,
-      geminiSummary: String(analysis.geminiSummary ?? ''),
-      keyInnovation: String(analysis.keyInnovation ?? ''),
-      potentialImpact: String(analysis.potentialImpact ?? ''),
+      summary: String(analysis.summary ?? ''),
       relevanceScore: Number(analysis.relevanceScore) || 0,
       categories: Array.isArray(analysis.categories) ? analysis.categories.map(String) : [],
       categoryScores: (analysis.categoryScores && typeof analysis.categoryScores === 'object' && !Array.isArray(analysis.categoryScores))

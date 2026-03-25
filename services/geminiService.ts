@@ -35,11 +35,9 @@ async function analyzeBatch(
     请务必使用 **中文** 提供 JSON 格式的结构化分析。
 
     分析重点包括：
-    1. 核心方法论的简洁摘要（geminiSummary）。
-    2. 与之前工作相比的关键创新点（keyInnovation）。
-    3. 对 AI 领域的长期潜在影响（potentialImpact）。
-    4. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
-    5. 从以下预定义类别中，选出该论文最相关的 1-3 个类别，并给出每个类别的相关度评分（1-10）。
+    1. 用 50~150 字的中文写一段综合摘要（summary），涵盖：该论文解决的核心问题、采用的关键方法和技术创新点，以及对 AI 领域的潜在影响，要求信息密度高，让专家一眼能看出论文讲了什么。
+    2. 针对普通 AI 研究者的相关度评分（relevanceScore，1-10分）。
+    3. 从以下预定义类别中，选出该论文最相关的 1-3 个类别，并给出每个类别的相关度评分（1-10）。
        可选类别 ID：[${categoryList}]
        返回：categories（选中类别 ID 的字符串数组）、categoryScores（对象，key 为类别 ID，value 为 1-10 评分）。
        不相关的类别不需要出现在 categoryScores 中。
@@ -64,14 +62,12 @@ async function analyzeBatch(
           type: Type.OBJECT,
           properties: {
             paperId: { type: Type.STRING, description: "The full arXiv ID as provided." },
-            geminiSummary: { type: Type.STRING, description: "Concise summary." },
-            keyInnovation: { type: Type.STRING, description: "What's new here?" },
-            potentialImpact: { type: Type.STRING, description: "Why it matters." },
+            summary: { type: Type.STRING, description: "50~150字中文综合摘要，涵盖核心问题、方法创新和潜在影响。" },
             relevanceScore: { type: Type.NUMBER, description: "Score from 1 to 10." },
             categories: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Selected category IDs (1-3)." },
             categoryScores: { type: Type.OBJECT, description: "Map of category ID to relevance score (1-10)." }
           },
-          required: ["paperId", "geminiSummary", "keyInnovation", "potentialImpact", "relevanceScore", "categories", "categoryScores"]
+          required: ["paperId", "summary", "relevanceScore", "categories", "categoryScores"]
         }
       }
     }
@@ -86,9 +82,7 @@ async function analyzeBatch(
     if (analysis && analysis.paperId) {
       record[analysis.paperId] = {
         paperId: analysis.paperId,
-        geminiSummary: String(analysis.geminiSummary ?? ''),
-        keyInnovation: String(analysis.keyInnovation ?? ''),
-        potentialImpact: String(analysis.potentialImpact ?? ''),
+        summary: String(analysis.summary ?? ''),
         relevanceScore: Number(analysis.relevanceScore) || 0,
         categories: Array.isArray(analysis.categories) ? analysis.categories : [],
         categoryScores: (analysis.categoryScores && typeof analysis.categoryScores === 'object' && !Array.isArray(analysis.categoryScores))

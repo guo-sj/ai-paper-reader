@@ -472,17 +472,7 @@ const buildDailyEmailHtml = (papers: AnalyzedPaper[], subscriberEmail: string, c
         const analysisHtml = p.analysis ? `
             <div style="background:#f0f7ff;border:1px solid #d0e8ff;border-radius:8px;padding:12px;margin:12px 0;">
                 <p style="margin:0 0 6px 0;font-size:11px;font-weight:bold;color:#1d4ed8;text-transform:uppercase;letter-spacing:0.05em;">AI 摘要</p>
-                <p style="margin:0;font-size:13px;color:#374151;line-height:1.6;font-style:italic;">${escapeHtml(p.analysis.geminiSummary)}</p>
-            </div>
-            <div style="display:flex;gap:16px;margin:8px 0;">
-                <div style="flex:1;">
-                    <p style="margin:0 0 4px 0;font-size:11px;font-weight:bold;color:#6b7280;text-transform:uppercase;">核心创新</p>
-                    <p style="margin:0;font-size:12px;color:#374151;line-height:1.5;">${escapeHtml(p.analysis.keyInnovation)}</p>
-                </div>
-                <div style="flex:1;">
-                    <p style="margin:0 0 4px 0;font-size:11px;font-weight:bold;color:#6b7280;text-transform:uppercase;">潜在影响</p>
-                    <p style="margin:0;font-size:12px;color:#374151;line-height:1.5;">${escapeHtml(p.analysis.potentialImpact)}</p>
-                </div>
+                <p style="margin:0;font-size:13px;color:#374151;line-height:1.6;font-style:italic;">${escapeHtml(p.analysis.summary)}</p>
             </div>
             <p style="margin:8px 0 0 0;font-size:11px;color:#6b7280;">相关度评分: <strong style="color:${p.analysis.relevanceScore >= 8 ? '#16a34a' : '#374151'}">${p.analysis.relevanceScore}/10</strong></p>
         ` : '';

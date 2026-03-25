@@ -100,19 +100,8 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, analysis, isLoadingAnalysi
                 <h4 className="text-xs font-bold text-blue-800 uppercase tracking-widest">AI Summary</h4>
               </div>
               <p className="text-sm text-slate-700 leading-relaxed italic">
-                "{analysis.geminiSummary}"
+                "{analysis.summary}"
               </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Key Innovation</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">{analysis.keyInnovation}</p>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Impact</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">{analysis.potentialImpact}</p>
-              </div>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-slate-100">

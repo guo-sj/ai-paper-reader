@@ -87,9 +87,7 @@ export interface ArxivPaper {
 
 export interface PaperAnalysis {
   paperId: string;
-  geminiSummary: string;
-  keyInnovation: string;
-  potentialImpact: string;
+  summary: string;
   relevanceScore: number; // 1-10
   categories: string[];                    // e.g. ["attention", "llm"]
   categoryScores: Record<string, number>;  // e.g. {"attention": 9, "llm": 6}
